@@ -1,0 +1,8 @@
+name: bigbox
+description: The machine every v62 member was fitted on (GCE c2-standard-8, 8 vCPUs, 31 GB).
+cores: 8
+memory_gb: 32
+runtime:
+  lgbm:
+    num_threads: 8
+    verbosity: -1

@@ -1,0 +1,48 @@
+name: rb01_lirf_route_ab02
+description: |
+  ab07's recipe without adsb_calib, routed by airport: one LightGBM for Rome (LIRF) rows and one
+  for the other nine airports, each also trained on the other route's rows at weight 0.1.
+  CV (Jan / Jul 2025 folds), trimmed RMSE without Rome: 200.63 (186.71 / 211.25).
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+train_label_cap: 10800
+model:
+  kind: routed
+  params:
+    by: airport
+    routes:
+      rome:
+      - LIRF
+    foreign_weight: 0.1
+    min_rows: 3000
+    base:
+      kind: lgbm
+      params:
+        learning_rate: 0.03
+        num_leaves: 511
+        min_data_in_leaf: 30
+        max_bin: 511
+        feature_fraction: 0.6
+        lambda_l2: 50.0
+        num_boost_round: 4000
+        early_stopping_rounds: 200
+folds: seasonal
+tags:
+  family: rules

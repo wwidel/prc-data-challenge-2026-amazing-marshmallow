@@ -1,0 +1,32 @@
+name: f25_queue2
+description: |
+  LightGBM on twelve blocks plus queue2: departures ahead of this one at its estimated
+  off-block, still ahead at takeoff, and the same per runway. The off-block estimate takes the
+  first available of eobt_1, aobt_3, iobt, lobt and the schedule, and records which one it used.
+  CV (Jan / Jul 2025 folds), trimmed RMSE without Rome: 226.81 (210.67 / 239.10).
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- queue2
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 100
+    max_bin: 511
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: seasonal
+tags:
+  family: geometry

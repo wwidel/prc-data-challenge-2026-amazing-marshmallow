@@ -1,0 +1,36 @@
+name: cb03_k20_combo_adsb
+description: |
+  CatBoost (depth 10, 3,000 iterations, border_count 1,024) on seventeen blocks, among them
+  modes6 and the context_window, gate_retention, eurocontrol_daily and adsb blocks; training
+  labels capped at 10,800 s. CV (Jan / Jul 2025 folds), trimmed RMSE without Rome: 200.47
+  (187.30 / 210.55).
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- modes6
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+train_label_cap: 10800
+model:
+  kind: catboost
+  params:
+    iterations: 3000
+    learning_rate: 0.05
+    depth: 10
+    thread_count: 8
+    border_count: 1024
+folds: seasonal
+tags:
+  family: outgoing_boat

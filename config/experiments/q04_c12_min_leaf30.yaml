@@ -1,0 +1,36 @@
+name: q04_c12_min_leaf30
+description: |
+  The main LightGBM recipe: fourteen blocks, including the low-cardinality stand x runway
+  encoding (stand_runway_lo), the modes5 off-block-source features and the arrival regime;
+  training labels capped at 10,800 s; min_data_in_leaf 30, feature_fraction 0.6, lambda_l2 50.
+  CV (Jan / Jul 2025 folds), trimmed RMSE without Rome: 219.00 (204.66 / 229.98).
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+train_label_cap: 10800
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 30
+    max_bin: 511
+    feature_fraction: 0.6
+    lambda_l2: 50.0
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: seasonal
+tags:
+  family: hyperparams

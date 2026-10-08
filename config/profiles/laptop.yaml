@@ -1,0 +1,8 @@
+name: laptop
+description: A small development machine. 4 cores; too little memory for the full pipeline.
+cores: 4
+memory_gb: 3
+runtime:
+  lgbm:
+    num_threads: 4
+    verbosity: -1

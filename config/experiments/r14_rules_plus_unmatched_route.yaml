@@ -1,0 +1,74 @@
+name: r14_rules_plus_unmatched_route
+description: |
+  The Rome (LIRF) layer: two rules over a LightGBM routed on the NM flight-match flag.
+  Rule 1: an NM-unmatched LIRF departure that took off more than 12 h after its schedule gets
+  0.62 x gap + 0.38 x 87,540 s, a mixture of the two values such labels take in 2025 (the gap
+  itself, or about one day plus a normal taxi). Rule 2: an NM-matched departure whose
+  takeoff - aobt_3 exceeds 4 h gets that difference. Everything else: one LightGBM for
+  NM-unmatched rows and one for matched rows, each also trained on the other's rows at weight 0.1.
+  Predictions clipped to [300, 200,000] s. CV RMSE on LIRF rows (Jan + Jul 2025): 625.06.
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- schedule
+- congestion
+model:
+  kind: rules
+  params:
+    clip:
+    - 300.0
+    - 200000.0
+    rules:
+    - name: lirf_unmatched_12h
+      when:
+      - column: flt_no_match
+        op: ==
+        value: 1
+      - column: airport
+        op: in
+        value:
+        - LIRF
+      - column: sc_gap_sec
+        op: '>'
+        value: 43200
+      predict:
+        mix:
+        - weight: 0.62
+          column: sc_gap_sec
+        - weight: 0.38
+          constant: 87540
+    - name: aobt_identity_extreme
+      when:
+      - column: flt_no_match
+        op: ==
+        value: 0
+      - column: ob_aobt_sec
+        op: '>'
+        value: 14400
+      predict:
+        column: ob_aobt_sec
+    base:
+      kind: routed
+      params:
+        by: flt_no_match
+        routes:
+          unmatched:
+          - 1
+        foreign_weight: 0.1
+        min_rows: 3000
+        base:
+          kind: lgbm
+          params:
+            learning_rate: 0.03
+            num_leaves: 511
+            min_data_in_leaf: 10
+            max_bin: 511
+            num_boost_round: 4000
+            early_stopping_rounds: 200
+folds: seasonal
+tags:
+  family: rules

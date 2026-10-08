@@ -1,0 +1,23 @@
+# Everything under data/ is either competition data (not redistributable), pulled open data, or
+# derived from them. None of it belongs in the repository.
+data/
+
+# What the runs write
+results/
+reports/
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# Local
+.env
+.DS_Store

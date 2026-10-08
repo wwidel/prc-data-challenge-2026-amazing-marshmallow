@@ -1,0 +1,36 @@
+name: t05_huber_alpha
+description: |
+  LightGBM with a Huber loss, delta (alpha) = 600 s, on twelve blocks. LightGBM's default
+  alpha (0.9) bounds every leaf update to under a second and gives a near-constant model, so it
+  must be set. Swept at 300 and 600; the grid keeps the one value the best submission (v62)
+  uses, so the member keeps its recorded name, t05_huber_alpha[alpha=600].
+  CV (Jan / Jul 2025 folds), trimmed RMSE without Rome: 227.60 (212.89 / 238.86).
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+grid:
+  alpha:
+  - 600
+model:
+  kind: lgbm
+  params:
+    objective: huber
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 100
+    max_bin: 511
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: seasonal
+tags:
+  family: loss
