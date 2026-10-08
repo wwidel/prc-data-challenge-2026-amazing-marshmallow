@@ -99,7 +99,7 @@ def held_out_together(
     """One fold per group of months, held out together, trained on every other month of ``pool``."""
     return [
         Fold(
-            name="+".join(groups_m),
+            name="_".join(groups_m),  # MLflow metric names allow no "+"
             train_months=tuple(x for x in pool if x not in groups_m),
             valid_months=tuple(groups_m),
         )
