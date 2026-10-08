@@ -104,6 +104,36 @@ row did not land. Our v62 file's sha256 starts with `bff918f7` and ends with `a4
 - **Numerics.** The members were fitted on one CPU type at fixed seeds. Another CPU, BLAS or thread
   count can move individual predictions by fractions of a second.
 
+## The final phase
+
+The organisers added a final phase after the leaderboard closed: one submission predicting
+`final_ranking.parquet`, which holds January, February, June and July 2026 (670,790 departures).
+They rank Jan/Jul, Feb/Jun and all four months. The template is `final_submitting.parquet`. Put
+both files in `data/raw/`, then run everything with `PHASE=final`, which sets
+`TAXIOUT_PHASE=final`:
+
+```bash
+make PHASE=final spine features cv refit overrides stack-noshift cellshift stack verify
+```
+
+What changes in that phase:
+
+- **Inputs.** The final file and its template replace the leaderboard's, and the scored months
+  become `2026-01, 2026-02, 2026-06, 2026-07`. Every 2026 output gets its own directory
+  (`data/*_final/`), so the two phases never mix in one checkout. `make adsb` and `make external`
+  already pull February and June 2026.
+- **Folds.** CV holds out January + July and February + June 2025, each trained on the other ten
+  months (fold set `final_pairs`). That mirrors the organisers' rankings; the four-month score is
+  the two folds pooled. `scripts/analysis/a129_stack_cv.py` scores the stack on them with the
+  weights fitted on the other pair, and `a130_member_months.py` scores single members per month.
+- **The organisers' randomness.** In the final file every takeoff time, and every arrival's
+  in-block time, moved by an integer number of seconds in [−12, 12]; nothing else changed
+  (`a126_final_randomness.py`). The LOBT window, the schedule-gap bound and the LEBL/LEMD ceilings
+  widen by that much (`paths.TIME_NOISE`).
+- **Overrides become rules.** The four override files are regenerated from the final file by the
+  same scripts, and a120 computes the cell shift for all four months against the build without
+  the shift (`make PHASE=final stack-noshift cellshift`).
+
 ## The light tier
 
 `scripts/lite.py` fits about thirty numbers. Per airport, it runs a least squares of the label on
