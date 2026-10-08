@@ -1,12 +1,12 @@
 # %% [markdown]
 # # a124 — LIRF NM-unmatched rows: the gate-delay member (lg01) against r14, cross-fold
 #
-# Team OpenAir's Rome steps (https://github.com/ChandanHegde07/OpenAir) moved their board only as
-# *soft* blends and reversed as hard swaps. So the question is not "is lg01 better" but "which
-# blend weight, chosen on one month, still wins on the other":
+# Team likable-eagle's Rome steps (https://github.com/ChandanHegde07/OpenAir) moved their board
+# only as *soft* blends and reversed as hard swaps. So the question is not "is lg01 better" but
+# "which blend weight, chosen on one month, still wins on the other":
 #   1. out-of-fold RMSE on LIRF NM-unmatched rows, Jan and Jul 2025, of r14, lg01 and
 #      T = (1 − λ) r14 + λ lg01 for λ on a grid; λ picked on one month and scored on the other;
-#      OpenAir's λ = 0.25 shown as a fixed reference, decided before running;
+#      likable-eagle's λ = 0.25 shown as a fixed reference, decided before running;
 #   2. the long-hold rule (OPDI ground time ≥ LONG_HOLD: pull halfway to the long-hold median
 #      label, the median learned on the other month), on top of the chosen blend;
 #   3. rows with a gap above GAP_COPY are reported apart: the submission serves them the gap
@@ -28,9 +28,9 @@ from taxiout import analysis, paths, store  # noqa: E402
 ROME = "r14_rules_plus_unmatched_route"
 GATE = "lg01_lirf_gate_delay"
 LAMBDAS = (0.0, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0)
-LAMBDA_REF = 0.25  # OpenAir's v21–v24 weight, fixed in advance
+LAMBDA_REF = 0.25  # likable-eagle's v21–v24 weight, fixed in advance
 GAP_COPY = 25_000.0  # above this the submission serves the gap (pop27_gap)
-LONG_HOLD = 7_200.0  # OpenAir's long-hold threshold
+LONG_HOLD = 7_200.0  # likable-eagle's long-hold threshold
 PULL = 0.5
 TRIM = 43_200.0
 

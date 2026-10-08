@@ -1,6 +1,6 @@
 name: lg01_lirf_gate_delay
 description: |
-  Gate-delay model for Rome, after team OpenAir: taxi-out T = D - G, with D = takeoff - schedule
+  Gate-delay model for Rome, after team likable-eagle: taxi-out T = D - G, with D = takeoff - schedule
   (known on the ranking rows) and G the gate delay, which is what is learnt. Fitted on LIRF
   departures only, as CatBoost on the residual from sc_gap_sec (an offset model, so the fit is
   -G), on r14's eight blocks plus context_window, arrival_regime and opdi (the same aircraft's

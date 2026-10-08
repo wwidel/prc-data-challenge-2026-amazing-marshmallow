@@ -123,10 +123,10 @@ class RoutedPredictor:
 class SubsetPredictor:
     """Fit ``base`` only on the rows whose ``by`` value is listed; the rest get ``fallback``.
 
-    For a model meant to serve one population — the LIRF gate-delay model (`T = D − G`, OpenAir
-    E33–E74) serves only Rome — `routed` would also fit a global model and a model for the other
-    nine airports that nothing uses. Here the other rows get a cheap fallback (a constant by
-    default), and only the listed rows' predictions mean anything.
+    For a model meant to serve one population — the LIRF gate-delay model (`T = D − G`,
+    likable-eagle's E33–E74) serves only Rome — `routed` would also fit a global model and a model
+    for the other nine airports that nothing uses. Here the other rows get a cheap fallback (a
+    constant by default), and only the listed rows' predictions mean anything.
 
     ```yaml
     kind: subset

@@ -162,7 +162,7 @@ recomputed inside every fold.
 
 Ideas taken from others. The code is ours throughout; see [Credits](#credits).
 ¹ team outgoing-boat ·
-² team OpenAir ·
+² team likable-eagle ·
 ³ suggested by an AI agent that reviewed our notes; see [Credits](#credits).
 The rest is our own: the other three overrides, the Rome rules, the modes family, the bounds and
 the stacking, though the per-group weights take an idea from a Kaggle solution.
@@ -319,7 +319,7 @@ Cross-validated member scores are from our run log. They are reproduced by `make
 
   We took ideas, measurements and parameter values, not code. Everything was re-implemented and
   re-verified on our data.
-- **Team OpenAir** ([ChandanHegde07/OpenAir](https://github.com/ChandanHegde07/OpenAir)) gave us
+- **Team likable-eagle** ([ChandanHegde07/OpenAir](https://github.com/ChandanHegde07/OpenAir)) gave us
   three things for Rome's unmatched rows: the gate-delay form `T = D − G`, with their CatBoost
   settings for G; the OPDI same-aircraft ground time; and, from their leaderboard reversals, the
   practice of choosing a Rome blend weight on one month and scoring it on the other.
@@ -330,7 +330,7 @@ Cross-validated member scores are from our run log. They are reproduced by `make
 - We also read the public repositories of teams
   [joyous-rainbow](https://github.com/radekacar/joyous-rainbow),
   [quirky-honey](https://github.com/dhsdb010/OPDI) and
-  [thoughtful-glove](https://github.com/mqignacio/prc2026_thoughtfulglove). quirky-honey and OpenAir
+  [thoughtful-glove](https://github.com/mqignacio/prc2026_thoughtfulglove). quirky-honey and likable-eagle
   published the LOBT window too, independently of outgoing-boat.
 - **Earlier competitions.**
   - The winners of the previous two PRC Data Challenges normalised their targets before modelling

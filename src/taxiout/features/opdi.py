@@ -1,19 +1,19 @@
 """Same-aircraft ground time from the OPDI flight list (EUROCONTROL PRC + OpenSky, v002).
 
-OpenAir (likable-eagle) joined the OPDI flight list to departures by callsign and took the
-aircraft's previous leg: ``icao_turn = first_seen − previous last_seen``. On LIRF NM-unmatched
-rows a long turn (≥ 2 h: the aircraft sat at the airport) went with a normal taxi (median 1,132 s)
-behind a large gate delay, and short turns with ``T ≈ D`` (schedule copies). Their board moved
-−0.48 with it as a feature of the gate-delay model (v23) and −1.37 with a long-hold pull (v24)
-(https://github.com/ChandanHegde07/OpenAir). The files come from ``scripts/pull_opdi.py``; the
+Team likable-eagle (repository OpenAir) joined the OPDI flight list to departures by callsign and
+took the aircraft's previous leg: ``icao_turn = first_seen − previous last_seen``. On LIRF
+NM-unmatched rows a long turn (≥ 2 h: the aircraft sat at the airport) went with a normal taxi
+(median 1,132 s) behind a large gate delay, and short turns with ``T ≈ D`` (schedule copies). Their
+board moved −0.48 with it as a feature of the gate-delay model (v23) and −1.37 with a long-hold pull
+(v24) (https://github.com/ChandanHegde07/OpenAir). The files come from ``scripts/pull_opdi.py``; the
 organiser accepted OPDI as open data.
 
 **Matching.** Candidate callsigns, tried in order: the NM callsign; the movement's flight number;
 the flight number with a doubled airline prefix removed (``ITYTY672`` → ``ITY672``, ``RYRR8830``
 → ``RYR8830``, ``QFAQFA6`` → ``QFA6``), a form many 2026 rows use. A departure takes the OPDI
 flight with that callsign whose ``adep`` is its airport and whose ``first_seen`` — lift-off, not
-off-block (OpenAir E46: median MVT − first_seen −26 s at LIRF) — is nearest its take-off, within
-``TOL`` seconds.
+off-block (likable-eagle's E46: median MVT − first_seen −26 s at LIRF) — is nearest its take-off,
+within ``TOL`` seconds.
 
 **Outputs.** ``op_found`` is 1 when a flight matched, else 0. The rest are null where unmatched:
 ``op_turn_s`` = first_seen − the same icao24's previous ``last_seen``, kept inside ``TURN``;
@@ -36,7 +36,7 @@ from taxiout.features.registry import FeatureContext, FeatureKind, align, featur
 SRC = paths.DATA / "external" / "opdi"
 OUTPUTS = ("op_found", "op_turn_s", "op_same_apt", "op_lag_s")
 TOL = 1_800.0  # |first_seen − take-off| allowed for a match, seconds
-TURN = (1_200.0, 129_600.0)  # ground times kept: 20 min to 36 h (OpenAir's window)
+TURN = (1_200.0, 129_600.0)  # ground times kept: 20 min to 36 h (likable-eagle's window)
 KEYS = ("k_nm", "k_raw", "k_dedup")
 _DOUBLED = r"^([A-Z]{3})[A-Z]{1,3}(\d[0-9A-Z]*)$"
 
