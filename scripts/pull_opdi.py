@@ -2,8 +2,8 @@
 
 OPDI — EUROCONTROL PRC and the OpenSky Network's Open Performance Data Initiative, open data
 the organiser accepted (CC BY 4.0 per the organiser, as recorded in kind-mango's README). One
-parquet per month (20–55 MB); 2025 for training, and January, June (for 1 July's previous legs)
-and July 2026 for the ranking months.
+parquet per month (20–55 MB); 2025 for training, and January, February, May, June and July 2026
+for the scored months (May and June also give 1 June's and 1 July's previous legs).
 
     uv run python scripts/pull_opdi.py [YYYYMM ...]
 """
@@ -16,7 +16,14 @@ import sys
 from taxiout import paths
 
 URL = "https://www.eurocontrol.int/performance/data/download/OPDI/v002/flight_list/flight_list_{m}.parquet"
-MONTHS = tuple(f"2025{m:02d}" for m in range(1, 13)) + ("202601", "202606", "202607")
+#: 2025 for training; the four scored 2026 months and the month before each (previous legs).
+MONTHS = tuple(f"2025{m:02d}" for m in range(1, 13)) + (
+    "202601",
+    "202602",
+    "202605",
+    "202606",
+    "202607",
+)
 OUT = paths.DATA / "external" / "opdi"
 
 
