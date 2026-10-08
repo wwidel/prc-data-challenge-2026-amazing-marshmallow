@@ -157,5 +157,5 @@ We measured this variant in our working repository (`a104`, variant "S0b") on th
 
 v39 scored 276.79 on the leaderboard and v62 251.25, so the full stack's lead over the light tier
 grew after this comparison was made. The light tier was never submitted and has no leaderboard
-score. `scripts/lite.py` is a stand-alone extraction of that code. Its logic is tested on synthetic
-data (`tests/test_lite.py`), but this extraction itself has not been run on the competition data.
+score. `scripts/lite.py` is a stand-alone extraction of that code; run on the competition data
+(2026-10-08) it reproduces a104's numbers above exactly.

@@ -12,7 +12,8 @@ This is variant "S0b" of ``scripts/analysis/a104_minimal_variants.py`` in our wo
 extracted to stand alone. a104 measured, on the Jan + Jul 2025 folds (each fitted on the other
 eleven months): trimmed RMSE without Rome 297.84 (Jan 280.52, Jul 311.18), all rows untrimmed
 440.49, LIRF untrimmed 1,035.1 — against 216.53 / 320.82 / 625.1 on the same folds for our
-stack at the time (v39's 13 members and the r14 Rome layer; leaderboard 276.79).
+stack at the time (v39's 13 members and the r14 Rome layer; leaderboard 276.79). This script
+reproduces those four numbers exactly (2026-10-08).
 
     uv run python scripts/lite.py [--out data/output/lite.parquet]
 
