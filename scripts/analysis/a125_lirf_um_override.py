@@ -21,9 +21,9 @@ from taxiout import analysis, paths  # noqa: E402
 # %% knobs
 GATE = "lg01_lirf_gate_delay"
 ROME = "r14_rules_plus_unmatched_route"
-EXACT = paths.DATA / "external" / "pop27_gap.parquet"  # rows served the gap; left alone
+EXACT = paths.OVERRIDES / "pop27_gap.parquet"  # rows served the gap; left alone
 GAP_COPY = 25_000.0
-OUT = paths.DATA / "external" / "lirf_um_lg01.parquet"
+OUT = paths.OVERRIDES / "lirf_um_lg01.parquet"
 
 rec = analysis.Recorder("a125_lirf_um_override", "LIRF NM-unmatched override from lg01")
 pl.Config.set_tbl_rows(30)
@@ -46,10 +46,10 @@ rows = (
     .collect(engine="streaming")
 )
 pop = pl.read_parquet(EXACT, glob=False).select(pl.col("mvt_id").cast(pl.Int64))["mvt_id"].to_list()
-g = pl.read_parquet(paths.DATA / "rank_preds" / f"{GATE}.parquet", glob=False).select(
+g = pl.read_parquet(paths.RANK_PREDS / f"{GATE}.parquet", glob=False).select(
     pl.col("mvt_id").cast(pl.Int64), pl.col("yhat").alias("lg01")
 )
-r = pl.read_parquet(paths.DATA / "rank_preds" / f"{ROME}.parquet", glob=False).select(
+r = pl.read_parquet(paths.RANK_PREDS / f"{ROME}.parquet", glob=False).select(
     pl.col("mvt_id").cast(pl.Int64), pl.col("yhat").alias("r14")
 )
 d = rows.join(g, on="mvt_id", how="left").join(r, on="mvt_id", how="left")

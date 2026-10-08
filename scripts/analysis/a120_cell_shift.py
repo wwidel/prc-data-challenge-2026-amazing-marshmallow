@@ -44,10 +44,15 @@ import taxiout.io as tio  # noqa: E402
 from taxiout import analysis, paths, postprocess  # noqa: E402
 
 # %% knobs
-SRC = paths.DATA / "external" / "eurocontrol"
+SRC = paths.EXTERNAL / "eurocontrol"
 AIRPORTS = ("EDDF", "EDDM", "EGLL", "EHAM", "LEBL", "LEMD", "LFPG", "LIRF", "LSZH", "LTFM")
 SKIP = ("LIRF",)  # labels above 2 h move Rome's mean by ~100 s; the Rome layer serves it
-PRED = Path(os.environ.get("A120_PRED", str(paths.OUTPUT / "v62_noshift.parquet")))
+PRED = Path(
+    os.environ.get(
+        "A120_PRED",
+        str(paths.OUTPUT / ("final_noshift.parquet" if paths.FINAL else "v62_noshift.parquet")),
+    )
+)
 BOARD = float(os.environ.get("A120_BOARD", "252.05"))  # the build's board score (arithmetic only)
 K = float(os.environ.get("A120_K", "0.5"))  # a half step towards the estimate
 MIN_SNR = 1.0  # a cell moves only if |b| exceeds this many leave-one-month-out errors
@@ -56,11 +61,11 @@ WINTER = 0.005  # an airport-month is "winter" when s_w >= this
 MIN_WINTER = 2  # an airport gets its own E with at least this many winter months, else the pooled E
 RARE_MIN = 20  # stand-runway pairs with fewer departures in the reference months are "rare"
 EXACT = (
-    paths.DATA / "external" / "pop27_gap.parquet",
-    paths.DATA / "external" / "onerow_aobt.parquet",
+    paths.OVERRIDES / "pop27_gap.parquet",
+    paths.OVERRIDES / "onerow_aobt.parquet",
 )
-OUT_CSV = paths.DATA / "external" / "cellshift.csv"  # `build_stack.py --cell-shift`
-SCORED = ("01", "07")
+OUT_CSV = paths.OVERRIDES / "cellshift.csv"  # `build_stack.py --cell-shift`
+SCORED = tuple(m[5:] for m in paths.RANK_MONTHS)  # the phase's scored months
 
 rec = analysis.Recorder("a120_cell_shift", "A build moved towards the published monthly taxi-out")
 pl.Config.set_tbl_rows(130)

@@ -6,7 +6,8 @@ rows rather than a finished submission file.
 
     uv run python scripts/refit_predict.py <experiment-name> [...]
 
-Writes data/rank_preds/<experiment>.parquet with columns mvt_id, yhat.
+Writes data/rank_preds/<experiment>.parquet (data/rank_preds_final/ in the final phase) with
+columns mvt_id, yhat.
 """
 
 from __future__ import annotations
@@ -35,7 +36,7 @@ def main() -> int:
     ap.add_argument("--profile", default=None)
     args = ap.parse_args()
 
-    out_dir = paths.DATA / "rank_preds"
+    out_dir = paths.RANK_PREDS
     out_dir.mkdir(parents=True, exist_ok=True)
     profile = profiles.load(args.profile) if args.profile else None
 

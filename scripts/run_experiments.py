@@ -7,6 +7,7 @@ Points at a directory by default, so the normal workflow is: drop a YAML in
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 import traceback
 
@@ -47,11 +48,20 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="show the queue and exit")
     ap.add_argument("--no-track", action="store_true", help="run without writing to MLflow")
     ap.add_argument("--build", action="store_true", help="build any missing feature blocks first")
+    ap.add_argument(
+        "--folds",
+        default=None,
+        help="run every config on this fold set instead of its own (e.g. final_pairs)",
+    )
     args = ap.parse_args()
 
     queue: list[Experiment] = []
     for target in args.configs:
         queue.extend(load_all(target))
+    if args.folds:
+        # A different fold set is a different experiment: it enters the config hash, so the
+        # override never skips a run because the same config was scored on other folds.
+        queue = [dataclasses.replace(e, folds=args.folds) for e in queue]
 
     if args.build:
         from taxiout.features import registry as feature_registry

@@ -18,7 +18,7 @@ rec = Recorder("a050_pop27_values", "The 27 huge-gap NM-unmatched Rome rows: pre
 
 # %% knobs
 GAP_MIN = 20_000.0
-OUT = paths.DATA / "external" / "pop27_gap.parquet"
+OUT = paths.OVERRIDES / "pop27_gap.parquet"
 
 # %%
 rec.section("the population")

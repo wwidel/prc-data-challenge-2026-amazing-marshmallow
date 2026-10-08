@@ -115,7 +115,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--out",
-        default=str(paths.OUTPUT / "v62.parquet"),
+        default=str(paths.OUTPUT / ("final.parquet" if paths.FINAL else "v62.parquet")),
         help="where to write the prediction file (competition format)",
     )
     ap.add_argument("--dry-run", action="store_true", help="build and validate, write nothing")
@@ -207,9 +207,7 @@ def main() -> int:
     # --- ranking-side member predictions ---------------------------------------------------
     rank = None
     for name in members:
-        f = pl.read_parquet(paths.DATA / "rank_preds" / f"{name}.parquet", glob=False).rename(
-            {"yhat": name}
-        )
+        f = pl.read_parquet(paths.RANK_PREDS / f"{name}.parquet", glob=False).rename({"yhat": name})
         rank = f if rank is None else rank.join(f, on="mvt_id")
     rank_groups = None
     if args.weight_groups:
@@ -226,10 +224,10 @@ def main() -> int:
 
     # --- Rome takes a single model's values verbatim ----------------------------------------
     rank_spine = spine.load(paths.RANK_MONTHS)
-    rome_ids = rank_spine.filter(pl.col("airport") == "LIRF")["mvt_id"]
-    rome = pl.read_parquet(
-        paths.DATA / "rank_preds" / f"{args.rome_from}.parquet", glob=False
-    ).rename({"yhat": "rome"})
+    rome_ids = rank_spine.filter(pl.col("airport") == "LIRF")["mvt_id"].implode()
+    rome = pl.read_parquet(paths.RANK_PREDS / f"{args.rome_from}.parquet", glob=False).rename(
+        {"yhat": "rome"}
+    )
     print(f"Rome layer: {args.rome_from} (twelve-month refit)")
     rome = rome.with_columns(pl.col("mvt_id").cast(pl.Int64))
     out = (

@@ -93,8 +93,26 @@ def leave_month_out(
     ]
 
 
+def held_out_together(
+    groups: tuple[tuple[str, ...], ...], pool: tuple[str, ...] = paths.TRAIN_MONTHS
+) -> list[Fold]:
+    """One fold per group of months, held out together, trained on every other month of ``pool``."""
+    return [
+        Fold(
+            name="+".join(groups_m),
+            train_months=tuple(x for x in pool if x not in groups_m),
+            valid_months=tuple(groups_m),
+        )
+        for groups_m in groups
+    ]
+
+
 #: Named fold sets, referenced by name from an experiment config.
 FOLD_SETS: dict[str, list[Fold]] = {
+    # The final phase's structure: the organisers rank January + July, February + June, and all
+    # four together. Each pair is held out as one fold and trained on the other ten months; the
+    # four-month score is the two folds pooled.
+    "final_pairs": held_out_together((("2025-01", "2025-07"), ("2025-02", "2025-06"))),
     # The two evaluation months. This is the default and the number we steer by.
     "seasonal": leave_month_out(("2025-01", "2025-07")),
     # Every month — slower, and the right check before trusting a big change.

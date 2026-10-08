@@ -13,7 +13,7 @@ from pathlib import Path
 
 import polars as pl
 
-from taxiout import io
+from taxiout import io, paths
 
 #: Predictions are clipped into this range before rounding. The lower bound is 0 because a
 #: negative taxi-out is not a physical prediction. The upper bound is only a sanity rail: the 2025
@@ -24,19 +24,25 @@ CLIP = (0.0, 200_000.0)
 #: Per-airport prediction ceilings. LEBL and LEMD labels are truncated by the data provider:
 #: across all twelve 2025 months no departure or arrival label exceeds ~3,600 s (maxima 3,604
 #: and 3,598; 65 and 35 labels sit in 3,300-3,610 and none above). A prediction over the
-#: ceiling there cannot be right. Source: scripts/analysis/r03_label_ceilings.py.
-AIRPORT_CEILINGS: dict[str, float] = {"LEBL": 3_600.0, "LEMD": 3_600.0}
+#: ceiling there cannot be right. Source: scripts/analysis/r03_label_ceilings.py. In the final
+#: phase both of a label's timestamps carry the organisers' noise, so it can move by twice that.
+AIRPORT_CEILINGS: dict[str, float] = {
+    "LEBL": 3_600.0 + 2 * paths.TIME_NOISE,
+    "LEMD": 3_600.0 + 2 * paths.TIME_NOISE,
+}
 
 #: A taxi cannot exceed the delay it was part of by more than this, because the aircraft has to
 #: have left the stand after its scheduled time. 2025 violation rate: 0.004% (88 of 2.08M rows).
-GAP_SLACK = 1_800.0
+#: Widened by the final phase's timestamp noise, so that it stays a bound.
+GAP_SLACK = 1_800.0 + paths.TIME_NOISE
 
 #: Half-width of the LOBT window. On every 2025 departure that has a LOBT (2,062,577 of them),
 #: ``|block_time − lobt| <= 3606 s``, extremes exactly ±3606 at every airport
 #: (scripts/analysis/a112_lobt_window.py). The property was published by team outgoing-boat
 #: (https://github.com/EnioAguiar/prc-taxiout-2026), whose diagnostic submission showed that it
-#: holds on the 2026 ranking set too. So the taxi-out lies in ``mvt − lobt ± LOBT_WINDOW``.
-LOBT_WINDOW = 3_606.0
+#: holds on the 2026 ranking set too. So the taxi-out lies in ``mvt − lobt ± LOBT_WINDOW``, widened
+#: in the final phase by the noise on the takeoff (and so on the label).
+LOBT_WINDOW = 3_606.0 + paths.TIME_NOISE
 
 
 def apply_gap_bound(frame: pl.DataFrame, slack: float = GAP_SLACK) -> pl.DataFrame:

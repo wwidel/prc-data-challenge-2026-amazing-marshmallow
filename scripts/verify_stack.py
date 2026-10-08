@@ -47,7 +47,7 @@ def main() -> int:
         print(f"no such file: {path}", file=sys.stderr)
         return 1
     sub = pl.read_parquet(path, glob=False)
-    truth = pl.read_parquet(paths.RAW / "submitting.parquet", glob=False)
+    truth = pl.read_parquet(paths.SUBMITTING, glob=False)
     problems: list[str] = []
 
     print(f"  {path.name}: {sub.height:,} rows, columns {sub.columns}")

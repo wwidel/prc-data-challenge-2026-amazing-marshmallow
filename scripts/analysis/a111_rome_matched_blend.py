@@ -33,7 +33,7 @@ COLS = [ROME_BASE, *MEMBERS]
 #: r14 carries its own rule on matched rows with takeoff − aobt_3 > 4 h (predict that gap
 #: exactly); a blend would dilute an exact value, so those rows keep r14's.
 RULE_AOBT = 14_400.0
-OUT = paths.DATA / "external" / "rome_matched_blend.parquet"
+OUT = paths.OVERRIDES / "rome_matched_blend.parquet"
 
 rec = analysis.Recorder("a111_rome_matched_blend", "Rome matched-row blend override")
 rec.say(f"  columns: {', '.join(COLS)}; output {OUT.name}")
@@ -78,7 +78,7 @@ rec.show(
 rec.section("the override file")
 rank = None
 for c in COLS:
-    r = pl.read_parquet(paths.DATA / "rank_preds" / f"{c}.parquet", glob=False).rename({"yhat": c})
+    r = pl.read_parquet(paths.RANK_PREDS / f"{c}.parquet", glob=False).rename({"yhat": c})
     rank = r if rank is None else rank.join(r, on="mvt_id", how="inner")
 rm = (
     tio.scan_ranking()

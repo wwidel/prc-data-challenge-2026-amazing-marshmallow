@@ -28,7 +28,7 @@ AGREE = 120.0
 #: Raise it and the file is empty; lower it into the 1–4 h bands and it picks up rows whose
 #: labels section 1 shows are ordinary.
 OVERRIDE_THRESHOLD = 43_200.0
-OUT = paths.DATA / "external" / "onerow_aobt.parquet"
+OUT = paths.OVERRIDES / "onerow_aobt.parquet"
 
 # %%
 rec.section("1. 2025 matched departures, by implied-taxi band")
