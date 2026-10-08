@@ -1,0 +1,45 @@
+name: hp_ab07_cat50
+description: |
+  ab07's recipe with one change: categorical smoothing: cat_smooth 50 and cat_l2 50 (LightGBM's defaults are 10 and 10),
+  for the high-cardinality stand x runway codes.
+  Baseline: ab07_ab02_adsb_calib on final_pairs, same code.
+  Judged in the stack (a129) as a replacement for ab07 and as an addition beside it, NNLS weights
+  fitted on the other pair: accepted only if the stack's trimmed RMSE without Rome improves on
+  at least 3 of the 4 months and by at least 0.3 s over the four.
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+- adsb_calib
+train_label_cap: 10800
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 30
+    max_bin: 511
+    feature_fraction: 0.6
+    lambda_l2: 50.0
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+    cat_smooth: 50.0
+    cat_l2: 50.0
+folds: final_pairs
+tags:
+  family: tuning

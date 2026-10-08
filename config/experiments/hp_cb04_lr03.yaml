@@ -1,0 +1,38 @@
+name: hp_cb04_lr03
+description: |
+  cb04's recipe with one change: learning rate 0.03 with 5,000 iterations: the slower schedule.
+  Baseline: cb04_cb03_adsb_calib on final_pairs, same code.
+  Judged in the stack (a129) as a replacement for cb04 and as an addition beside it, NNLS weights
+  fitted on the other pair: accepted only if the stack's trimmed RMSE without Rome improves on
+  at least 3 of the 4 months and by at least 0.3 s over the four.
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- modes6
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+- adsb_calib
+train_label_cap: 10800
+model:
+  kind: catboost
+  params:
+    iterations: 5000
+    learning_rate: 0.03
+    depth: 10
+    thread_count: 8
+    border_count: 1024
+folds: final_pairs
+tags:
+  family: tuning
