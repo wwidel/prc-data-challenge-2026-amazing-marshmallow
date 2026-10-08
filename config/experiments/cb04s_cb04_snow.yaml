@@ -1,0 +1,39 @@
+name: cb04s_cb04_snow
+description: |
+  cb04_cb03_adsb_calib plus the snow block, nothing else changed. Baseline: cb04_cb03_adsb_calib on final_pairs.
+  Judged in the stack (a129) with the other snow variants, NNLS weights fitted on the other pair:
+  accepted only if the stack's trimmed RMSE without Rome improves on at least 3 of the 4 months
+  and by at least 0.3 s over the four. Motivation: q04s (q04 + snow) moved February by -5.68 s
+  and no month by more than +0.01 (a130, 2026-10-08).
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- modes6
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+- adsb_calib
+- snow
+train_label_cap: 10800
+model:
+  kind: catboost
+  params:
+    iterations: 3000
+    learning_rate: 0.05
+    depth: 10
+    thread_count: 8
+    border_count: 1024
+folds: final_pairs
+tags:
+  family: snow
