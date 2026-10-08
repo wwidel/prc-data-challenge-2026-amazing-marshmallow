@@ -113,6 +113,10 @@ FOLD_SETS: dict[str, list[Fold]] = {
     # four together. Each pair is held out as one fold and trained on the other ten months; the
     # four-month score is the two folds pooled.
     "final_pairs": held_out_together((("2025-01", "2025-07"), ("2025-02", "2025-06"))),
+    # The same two folds as separate fold sets, so a long CV runs as two jobs and a spot
+    # preemption costs one fold; `scripts/merge_oof.py` joins their out-of-fold files.
+    "final_pairs_janjul": held_out_together((("2025-01", "2025-07"),)),
+    "final_pairs_febjun": held_out_together((("2025-02", "2025-06"),)),
     # The two evaluation months. This is the default and the number we steer by.
     "seasonal": leave_month_out(("2025-01", "2025-07")),
     # Every month — slower, and the right check before trusting a big change.

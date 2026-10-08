@@ -74,3 +74,10 @@ def test_final_pairs_hold_each_pair_out_and_train_on_the_other_ten():
         assert len(f.train_months) == 10
         assert not set(f.train_months) & set(f.valid_months)
         assert set(f.train_months) | set(f.valid_months) == set(paths.TRAIN_MONTHS)
+
+
+def test_single_pair_fold_sets_are_the_two_folds_of_final_pairs():
+    pairs = {f.name: f for f in cv.get_folds("final_pairs")}
+    for name in ("final_pairs_janjul", "final_pairs_febjun"):
+        (fold,) = cv.get_folds(name)
+        assert pairs[fold.name] == fold
