@@ -29,8 +29,10 @@ EXPERIMENT_NAME = "taxi-out"
 os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 
 #: MLflow 3 retired the filesystem backend. SQLite is the supported local option and still
-#: needs no server: one file at the repo root, artifacts beside it.
-TRACKING_URI = f"sqlite:///{paths.MLFLOW_DB}"
+#: needs no server: one file at the repo root, artifacts beside it. Jobs running side by side
+#: should each set MLFLOW_TRACKING_URI to their own SQLite file: concurrent writers to one file can
+#: fail with "database is locked", and the out-of-fold file is written inside the MLflow run.
+TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI") or f"sqlite:///{paths.MLFLOW_DB}"
 
 
 def _mlflow():
