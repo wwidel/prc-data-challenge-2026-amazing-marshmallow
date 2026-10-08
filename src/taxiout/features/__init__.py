@@ -1,7 +1,8 @@
 """Feature blocks. Importing this package registers every block.
 
 One module per family; see :mod:`taxiout.features.registry` for the declaration rules. This
-package holds the 24 blocks that the members of the best submission (v62) read.
+package holds the 24 blocks that the members of the best submission (v62) read, plus `snow`
+(final phase, 2026-10-08).
 """
 
 from taxiout.features import (  # noqa: F401
@@ -24,6 +25,7 @@ from taxiout.features import (  # noqa: F401
     runway_config,
     runway_history,
     schedule,
+    snow,
     stand_geometry,
     stand_runway,
     stand_runway_lo,

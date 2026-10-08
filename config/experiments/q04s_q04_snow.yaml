@@ -1,0 +1,38 @@
+name: q04s_q04_snow
+description: |
+  Screen: q04 plus the snow block (snow reports over 3-48 h, heavy snow, freezing rain, the
+  day's count, hours since snow). Question: does a measure of a storm's size help February?
+  Baseline: q04_c12_min_leaf30 on final_pairs, same code. Population: all departures of the four
+  held-out months. Reading, fixed before running: a gain if February's trimmed RMSE without Rome
+  improves by at least 1.0 s and no other month worsens by more than 0.3 s; then ab07s goes on.
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+- snow
+train_label_cap: 10800
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 30
+    max_bin: 511
+    feature_fraction: 0.6
+    lambda_l2: 50.0
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: final_pairs
+tags:
+  family: snow

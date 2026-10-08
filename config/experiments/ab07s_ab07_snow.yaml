@@ -1,0 +1,42 @@
+name: ab07s_ab07_snow
+description: |
+  ab07 plus the snow block: the ADS-B recipe that would carry snow into the stack. Baseline:
+  ab07_ab02_adsb_calib on final_pairs. Judged in the stack (a129): replacing ab07 or added beside
+  it, with NNLS weights fitted on the other fold, accepted if the stack's trimmed RMSE without Rome
+  improves on at least 3 of the 4 months and by at least 0.3 s over the four.
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+- adsb_calib
+- snow
+train_label_cap: 10800
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 30
+    max_bin: 511
+    feature_fraction: 0.6
+    lambda_l2: 50.0
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: final_pairs
+tags:
+  family: snow
