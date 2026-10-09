@@ -66,7 +66,8 @@ def main() -> int:
                     break
                 except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
                     code = getattr(e, "code", None)
-                    busy = code in (429, 502, 503, 504) or code is None
+                    # overloaded or refusing (5xx, 406, 429, no answer): try the next endpoint
+                    busy = code is None or code in (406, 429) or code >= 500
                     if not busy or attempt == attempts - 1:
                         raise
                     wait = 30 * (attempt + 1)
