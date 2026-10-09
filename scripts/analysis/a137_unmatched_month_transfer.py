@@ -14,8 +14,9 @@
 #   in sample      — fitted on the held-out month itself (a floor no rule can reach).
 # Per month and option: the unmatched rows' RMSE (all labels and trimmed), their mean residual,
 # the vector's sum, and the month's trimmed RMSE without Rome — the number the stack is judged by —
-# with its change against "pooled"; then the four months together. Members: A137_MEMBERS (a file,
-# one member per line; default the BASE composition). Numbers only.
+# with its change against "pooled"; then the four months together; then February's unmatched rows
+# by airport and by day under the vector fitted on the other three months. Members: A137_MEMBERS
+# (a file, one member per line; default the BASE composition). Numbers only.
 
 # %%
 import os
@@ -137,4 +138,41 @@ for name in dict.fromkeys(k[0] for k in sse):
 f4 = pl.from_dicts(four)
 p = f4.filter(pl.col("option") == "pooled")["four-month trimmed rmse"].item()
 rec.show(f4.with_columns((pl.col("four-month trimmed rmse") - p).round(3).alias("Δ vs pooled")))
+
+# %%
+rec.section("3. February's unmatched rows, vector fitted on the other three months")
+w = fit((month != FEB) & unm)
+feb = d.with_columns(pl.Series("pred", X @ w)).filter((pl.col("month") == FEB) & pl.col("unm"))
+days = (
+    tio.scan_training()
+    .filter(pl.col("phase") == "DEP")
+    .select("mvt_id", pl.col("mvt_time").dt.date().alias("day"))
+)
+feb = feb.join(days.collect(engine="streaming"), on="mvt_id").with_columns(
+    (pl.col("y") - pl.col("pred")).alias("res")
+)
+tot = float((feb["res"] ** 2).sum())
+rec.show(
+    feb.group_by("airport")
+    .agg(
+        pl.len().alias("rows"),
+        pl.col("y").mean().round(0).alias("mean label"),
+        pl.col("res").mean().round(0).alias("mean residual"),
+        ((pl.col("res") ** 2).sum() / tot).round(3).alias("share of SSE"),
+    )
+    .sort("share of SSE", descending=True),
+    "per airport",
+)
+rec.show(
+    feb.group_by("airport", "day")
+    .agg(
+        pl.len().alias("rows"),
+        pl.col("y").mean().round(0).alias("mean label"),
+        pl.col("res").mean().round(0).alias("mean residual"),
+        ((pl.col("res") ** 2).sum() / tot).round(3).alias("share of SSE"),
+    )
+    .sort("share of SSE", descending=True)
+    .head(12),
+    "the twelve airport-days with the most squared error",
+)
 rec.done()
