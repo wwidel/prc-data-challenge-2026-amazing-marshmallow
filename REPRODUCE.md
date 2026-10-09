@@ -103,7 +103,9 @@ row did not land. Our v62 file's sha256 starts with `bff918f7` and ends with `a4
   (`scripts/analysis/a138_compare_pulls.py`).
 - **The OSM pull depends on the public Overpass API**, which is often overloaded. The script
   retries, alternates with a mirror, and keeps each airport's answer under `data/external/osm/`,
-  so a rerun resumes where it stopped; on 2026-10-09 it needed several reruns.
+  so a rerun resumes where it stopped; on 2026-10-09 it needed several reruns. That pull found
+  3,821 named stands against the 3,813 our build used (9 only in the new pull, 1 only in ours):
+  OpenStreetMap edits since our pull of 26 September.
 - **The cell shift is a fixed parameter here.** `config/cellshift_v54.csv` holds 11 airport-month
   shifts that `scripts/analysis/a120_cell_shift.py` computed on an earlier build, v54, whose members
   are not all in this repository. v62 applies them unchanged. You can point a120 at your own build

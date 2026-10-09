@@ -264,6 +264,7 @@ the scale: they moved a member by up to 0.9 s in one month, and the stack by 0.0
 | F1 | the `snow` block on the five LightGBM members | 197.76 | v64: 251.82 |
 | F1u | the NM-unmatched rule below | 196.05¹ | — |
 | F2a | cb04 at 4,500 iterations | 195.59 | v65: **251.11** |
+| F2b | cb03 at 4,500 iterations | 195.21 | — |
 | final | _to be filled in when chosen_ | | |
 
 ¹ In `a129` the January + July vector is fitted on February + June alone, which overstates this
@@ -295,14 +296,15 @@ without February 2025 (it sums to 1.037), and February's unmatched rows keep the
 (`build_stack.py --unmatched-without-month 02`). On the 2026 rows this lowers the unmatched
 predictions by 168 s in January and by 106 s in June and July.
 
-**Tuning.** The CatBoost members were short of iterations: cb04 at 4,500 instead of 3,000 improved
-every month by 1.2 to 1.6 s as a member, and passed the stack gate. Nothing else passed: five
+**Tuning.** The CatBoost members were short of iterations. At 4,500 instead of 3,000, cb04 and cb03
+each improved every month by 1.2 to 1.6 s as members, and each passed the stack gate in turn (−0.46,
+then −0.38). Nothing else passed: five
 variants of ab07 with the snow block (feature fraction, categorical smoothing, bagging, extra
 trees, Huber loss), a lower learning rate on ab07, and three variants of cb04: `l2_leaf_reg` 10,
 `random_strength` 3, and learning rate 0.03 with 5,000 iterations. The last came closest. As a
 member it cut February by 4.0 s and the NM-unmatched rows by 15 s, but in the stack it improved
-only two months, both in place of cb04 and beside its 4,500-iteration version. _Pending: cb03 at
-4,500 iterations._ Seed replicates were not run: a near-replicate of ab07 placed beside it moved
+only two months, both in place of cb04 and beside its 4,500-iteration version. Seed replicates were
+not run: a near-replicate of ab07 placed beside it moved
 the stack by 0.013 s.
 
 ## Learnings
