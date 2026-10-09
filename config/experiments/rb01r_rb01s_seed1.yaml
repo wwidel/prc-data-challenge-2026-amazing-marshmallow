@@ -1,0 +1,55 @@
+name: rb01r_rb01s_seed1
+description: |
+  Replicate: rb01s_rb01_snow with one change, its random seed (seed = 1 instead of 0).
+  Question: does a second draw of the same recipe, beside the first, lower the stack's error?
+  Baseline: rb01s_rb01_snow on final_pairs: 199.69 (Jan 186.74, Feb 228.64, Jun 170.59, Jul
+  211.84).
+  Population: all departures of the four held-out months. Reading, fixed before running: judged in
+  the stack (a129) as an addition beside rb01s_rb01_snow, with the other replicates and alone;
+  accepted only if the stack's trimmed RMSE without Rome improves on at least 3 of the 4 months
+  and by at least 0.3 s over the four.
+features:
+- calendar
+- offblock
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- stand_runway_lo
+- modes5
+- arrival_regime
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+- snow
+train_label_cap: 10800
+model:
+  kind: routed
+  params:
+    by: airport
+    routes:
+      rome:
+      - LIRF
+    foreign_weight: 0.1
+    min_rows: 3000
+    base:
+      kind: lgbm
+      params:
+        learning_rate: 0.03
+        num_leaves: 511
+        min_data_in_leaf: 30
+        max_bin: 511
+        feature_fraction: 0.6
+        lambda_l2: 50.0
+        num_boost_round: 4000
+        early_stopping_rounds: 200
+        seed: 1
+folds: final_pairs
+tags:
+  family: seed
