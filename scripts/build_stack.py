@@ -8,6 +8,10 @@ In this order, which is part of the result:
    the global vector). The weights are applied to the members' twelve-month refits in
    ``data/rank_preds/<member>.parquet``, written by ``scripts/refit_predict.py``. Members come
    from ``config/compositions/`` (``paths.composition()``) unless ``--members`` names a file.
+   With ``--unmatched-without-month MM`` the NM-unmatched vector is fitted without the
+   out-of-fold rows of calendar month MM and applied to every other month, while that month's
+   unmatched rows keep the vector fitted on all months (the final phase uses 02: two storm days
+   at Istanbul in February 2025 pull the all-month vector up; ``a137``).
 2. **Rome.** LIRF rows take ``--rome-from <experiment>``'s twelve-month refit verbatim.
 3. **Cell shift.** ``--cell-shift`` adds a fixed number of seconds to every row of each listed
    airport-month (``postprocess.apply_cell_shift``).
@@ -67,6 +71,39 @@ class _GroupedCombiner:
         return out
 
 
+def _month_held_vectors(
+    matrix: np.ndarray, y: np.ndarray, unmatched: np.ndarray, month: np.ndarray, held: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """The NM-unmatched rows' two NNLS vectors for ``--unmatched-without-month``.
+
+    Returns (fitted on the unmatched rows of every month except ``held``, fitted on all unmatched
+    rows). ``month`` is each row's calendar month as ``MM``. Pure; unit-tested.
+    """
+    unmatched = np.asarray(unmatched, dtype=bool)
+    others = unmatched & (np.asarray(month) != held)
+    without, _ = nnls(matrix[others], y[others])
+    every, _ = nnls(matrix[unmatched], y[unmatched])
+    return without, every
+
+
+def _apply_held_month(
+    stacked: np.ndarray,
+    matrix: np.ndarray,
+    unmatched: np.ndarray,
+    month: np.ndarray,
+    held: str,
+    weights_all: np.ndarray,
+) -> tuple[np.ndarray, int]:
+    """Give the unmatched rows of month ``held`` the all-month vector; leave every other row.
+
+    Returns the new predictions and the number of rows changed. Pure; unit-tested.
+    """
+    sel = np.asarray(unmatched, dtype=bool) & (np.asarray(month) == held)
+    out = np.asarray(stacked, dtype=float).copy()
+    out[sel] = matrix[sel] @ weights_all
+    return out, int(sel.sum())
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -103,6 +140,16 @@ def main() -> int:
         ),
     )
     ap.add_argument(
+        "--unmatched-without-month",
+        default=None,
+        metavar="MM",
+        help=(
+            "with --weight-groups unmatched: fit the unmatched vector without the out-of-fold rows "
+            "of calendar month MM (e.g. 02) and apply it to every other month; that month's "
+            "unmatched rows keep the vector fitted on all months"
+        ),
+    )
+    ap.add_argument(
         "--group-min-rows",
         type=int,
         default=2000,
@@ -120,6 +167,8 @@ def main() -> int:
     )
     ap.add_argument("--dry-run", action="store_true", help="build and validate, write nothing")
     args = ap.parse_args()
+    if args.unmatched_without_month and args.weight_groups != "unmatched":
+        ap.error("--unmatched-without-month needs --weight-groups unmatched")
 
     if args.members:
         members = Path(args.members).read_text().split()
@@ -157,16 +206,21 @@ def main() -> int:
     # because only block_time and taxi_sec are blanked there.
     groups_oof = groups_rank = None
     if args.weight_groups == "unmatched":
+        cols = (
+            "mvt_id",
+            pl.col("flight_id").is_null().alias("grp"),
+            pl.col("mvt_time").dt.strftime("%m").alias("mm"),
+        )
         groups_oof = (
             io.scan_training()
             .filter(pl.col("phase") == "DEP")
-            .select("mvt_id", pl.col("flight_id").is_null().alias("grp"))
+            .select(*cols)
             .collect(engine="streaming")
         )
         groups_rank = (
             io.scan_ranking()
             .filter(pl.col("phase") == "DEP")
-            .select("mvt_id", pl.col("flight_id").is_null().alias("grp"))
+            .select(*cols)
             .collect(engine="streaming")
         )
         print(
@@ -178,7 +232,8 @@ def main() -> int:
     # Rome is served by its own layer, so the combiner is fitted on the other nine airports.
     train = oof.filter(pl.col("airport") != "LIRF")
     X = np.column_stack([train[m].to_numpy().astype(float) for m in members])
-    weights, _ = nnls(X, train["y"].to_numpy().astype(float))
+    y_train = train["y"].to_numpy().astype(float)
+    weights, _ = nnls(X, y_train)
     combiner = _LinearCombiner(weights)
     print(
         "  nnls weights: "
@@ -201,6 +256,20 @@ def main() -> int:
                 f"  group {value!r}: {rows.height:,} rows, weights "
                 + ", ".join(f"{m}={w:.4f}" for m, w in zip(members, gw, strict=True))
             )
+        held, w_unmatched_all = args.unmatched_without_month, None
+        if held:
+            unm = train["grp"].fill_null(False).to_numpy()
+            mm = train["mm"].to_numpy()
+            n_others = int((unm & (mm != held)).sum())
+            if n_others < args.group_min_rows:
+                ap.error(f"only {n_others:,} unmatched rows outside month {held}")
+            w_without, w_unmatched_all = _month_held_vectors(X, y_train, unm, mm, held)
+            group_weights[True] = w_without
+            print(
+                f"  group True without month {held}: {n_others:,} rows, weights "
+                + ", ".join(f"{m}={w:.4f}" for m, w in zip(members, w_without, strict=True))
+                + f" (sum {w_without.sum():.4f}; all months {w_unmatched_all.sum():.4f})"
+            )
         combiner = _GroupedCombiner(group_weights, weights)
     print(f"combiner fitted on {train.height:,} non-LIRF OOF rows")
 
@@ -220,6 +289,11 @@ def main() -> int:
     stacked = combiner.predict(rank_matrix, rank_groups)
     if rank_groups is not None:
         print(f"  grouped predict: {int(rank_groups.sum()):,} of {len(rank_groups):,} unmatched")
+    if args.weight_groups and args.unmatched_without_month:
+        stacked, n_held = _apply_held_month(
+            stacked, rank_matrix, rank_groups, rank["mm"].to_numpy(), held, w_unmatched_all
+        )
+        print(f"  unmatched rows of month {held}: {n_held:,} keep the all-month vector")
     out = rank.select("mvt_id").with_columns(pl.Series("prediction", stacked))
 
     # --- Rome takes a single model's values verbatim ----------------------------------------

@@ -13,6 +13,9 @@
 #      better on at least 3 of the 4 months and by at least 0.3 s over the four.
 # A129_SETS: "name=-member,+member;name2=+member" — changes relative to the base.
 # A129_BASE: a file listing the base's members, one per line (default: the BASE composition).
+# A129_UNMATCHED_WITHOUT: a calendar month MM (e.g. 02) — the NM-unmatched vector is fitted
+# without that month's rows and applied to the other months; that month's rows keep the vector
+# fitted on every fitting month (build_stack.py --unmatched-without-month).
 
 # %%
 import os
@@ -36,6 +39,7 @@ GATE_MONTHS, GATE_POOLED = 3, -0.3
 BASE_FILE = os.environ.get("A129_BASE", "")
 BASE = Path(BASE_FILE).read_text().split() if BASE_FILE else paths.composition()
 SPEC = os.environ.get("A129_SETS", "")
+HELD = os.environ.get("A129_UNMATCHED_WITHOUT", "")
 
 rec = analysis.Recorder("a129_stack_cv", "The stack on the final phase's folds, cross-pair weights")
 pl.Config.set_tbl_rows(40)
@@ -86,6 +90,8 @@ lab = (
 frame = frame.join(lab, on="mvt_id", how="inner")
 months = sorted(frame["month"].unique().to_list())
 rec.say(f"  base from {BASE_FILE or 'the BASE composition'} ({len(BASE)} members)")
+if HELD:
+    rec.say(f"  NM-unmatched vector fitted without month {HELD} for the other months")
 rec.say(f"  joined rows {frame.height:,}; months {months}; base: {', '.join(BASE)}")
 for k, v in sets.items():
     if k != "base":
@@ -96,6 +102,7 @@ y_all = frame["y"].to_numpy().astype(float)
 unm_all = frame["unm"].fill_null(False).to_numpy()
 month_all = frame["month"].to_numpy()
 not_lirf = (frame["airport"] != "LIRF").to_numpy()
+mm_all = np.array([m[-2:] for m in month_all])
 
 
 def per_month(col: str) -> dict[str, float]:
@@ -125,6 +132,11 @@ def stack(members: list[str]) -> np.ndarray:
             w = nnls(X[rows], y_all[rows])[0] if rows.sum() >= GROUP_MIN_ROWS else w_glob
             sel = target & (unm_all == g)
             pred[sel] = X[sel] @ w
+            if g and HELD:
+                others = rows & (mm_all != HELD)
+                w_o = nnls(X[others], y_all[others])[0] if others.sum() >= GROUP_MIN_ROWS else w
+                sel_o = sel & (mm_all != HELD)
+                pred[sel_o] = X[sel_o] @ w_o
     return pred
 
 

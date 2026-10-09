@@ -94,6 +94,58 @@ def test_grouped_combiner_without_groups_is_the_global_vector():
     assert got[0] == 0.25 * 4.0 + 0.75 * 8.0
 
 
+def _build_stack():
+    import sys
+
+    sys.path.insert(0, str(paths.ROOT / "scripts"))
+    import build_stack
+
+    return build_stack
+
+
+def test_held_month_vector_is_fitted_without_that_month():
+    """`--unmatched-without-month`: one month's unmatched labels run at twice the member's
+    prediction; the vector fitted without it must not be pulled up, the all-month one must be."""
+    import numpy as np
+
+    pred = np.array([100.0, 200.0, 300.0, 400.0, 500.0, 600.0])
+    month = np.array(["01", "01", "06", "06", "02", "02"])
+    y = np.where(month == "02", 2 * pred, pred)
+    unmatched = np.ones(6, dtype=bool)
+    without, every = _build_stack()._month_held_vectors(pred[:, None], y, unmatched, month, "02")
+
+    assert abs(without[0] - 1.0) < 1e-9
+    assert every[0] > 1.5
+
+
+def test_held_month_vector_ignores_matched_rows():
+    import numpy as np
+
+    pred = np.array([100.0, 200.0, 300.0, 400.0])
+    y = np.array([100.0, 200.0, 3_000.0, 4_000.0])  # the last two are matched: not fitted
+    unmatched = np.array([True, True, False, False])
+    month = np.array(["01", "07", "01", "07"])
+    without, every = _build_stack()._month_held_vectors(pred[:, None], y, unmatched, month, "02")
+
+    assert abs(without[0] - 1.0) < 1e-9 and abs(every[0] - 1.0) < 1e-9
+
+
+def test_only_the_held_month_s_unmatched_rows_take_the_all_month_vector():
+    import numpy as np
+
+    matrix = np.array([[10.0], [10.0], [10.0], [10.0]])
+    stacked = np.array([11.0, 12.0, 13.0, 14.0])
+    unmatched = np.array([True, True, False, True])
+    month = np.array(["02", "02", "02", "07"])
+    out, n = _build_stack()._apply_held_month(
+        stacked, matrix, unmatched, month, "02", np.array([1.5])
+    )
+
+    assert n == 2
+    assert out.tolist() == [15.0, 15.0, 13.0, 14.0], "matched and other-month rows must not move"
+    assert stacked.tolist() == [11.0, 12.0, 13.0, 14.0], "the input must not be modified"
+
+
 def test_lobt_window_projects_both_ways_and_skips_rows_without_lobt():
     frame = pl.DataFrame(
         {
