@@ -21,8 +21,12 @@ For a result in minutes rather than days, see [the light tier](#the-light-tier) 
   `tests/test_pipeline.py::test_raw_files_are_complete` checks each file's row count.
 - **Python 3.12 or 3.13 and [uv](https://docs.astral.sh/uv/).** `uv.lock` pins the exact versions
   the members were fitted with: polars, LightGBM, CatBoost, scikit-learn, scipy and the rest.
-- **Disk.** About 6 GB for the ADS-B cut, plus room for each day's raw archive while it is cut.
-  Roughly 1 GB more for the feature store and the predictions.
+- **An internet connection, `curl` and `bzip2`.** Every open source is downloaded by a script in
+  `scripts/pull_*.py` (`make external`, `make adsb`); three of them call `curl`, and the
+  EUROCONTROL delay-by-cause files are decompressed with `bzcat`. Nothing is downloaded by hand.
+- **Disk.** About 7 GB for the ADS-B cut (485 days), plus room for each day's raw archive while it
+  is cut; 0.7 GB for the 17 OPDI flight lists; under 0.1 GB for METAR, the Gateway and OSM stands
+  and the EUROCONTROL files. Roughly 1 GB more for the feature store and the predictions.
 - **Memory.** 32 GB. The workstation we developed on had 3 GB usable, and it could not run the
   feature builds or the fits.
 
@@ -101,8 +105,11 @@ row did not land. Our v62 file's sha256 starts with `bff918f7` and ends with `a4
 - **Feature caches do not see external files.** A block's cache key hashes its code, not the files
   it reads, so after re-pulling a source rebuild its blocks with
   `uv run python scripts/build_features.py --overwrite <block>`.
-- **Numerics.** The members were fitted on one CPU type at fixed seeds. Another CPU, BLAS or thread
-  count can move individual predictions by fractions of a second.
+- **Numerics.** The members are fitted at fixed seeds, but a tree learner depends on the order of
+  floating-point sums: another CPU, BLAS or thread count can change a split, and every prediction
+  below that split moves with it. We did not measure this alone. Between our two phases, refits
+  of the same configs differed by about 31 s RMS on the leaderboard rows, through changed inputs
+  and numerics together (`a132`, `a133`).
 
 ## The final phase
 
