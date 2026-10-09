@@ -264,7 +264,7 @@ the scale: they moved a member by up to 0.9 s in one month, and the stack by 0.0
 | F1 | the `snow` block on the five LightGBM members | 197.76 | v64: 251.82 |
 | F1u | the NM-unmatched rule below | 196.05¹ | — |
 | F2a | cb04 at 4,500 iterations | 195.59 | v65: **251.11** |
-| F2b | cb03 at 4,500 iterations | 195.21 | — |
+| F2b | cb03 at 4,500 iterations | 195.21 | v66: **250.86** |
 | final | _to be filled in when chosen_ | | |
 
 ¹ In `a129` the January + July vector is fitted on February + June alone, which overstates this
