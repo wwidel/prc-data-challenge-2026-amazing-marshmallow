@@ -23,7 +23,11 @@ import polars as pl
 from taxiout import paths
 
 AIRPORTS = ("EDDF", "EDDM", "EGLL", "EHAM", "LEBL", "LEMD", "LFPG", "LIRF", "LSZH", "LTFM")
-OVERPASS = "https://overpass-api.de/api/interpreter"
+#: The main Overpass instance first, then a mirror of the same OSM data for when it is overloaded.
+OVERPASS = (
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+)
 
 QUERY = """
 [out:json][timeout:90];
@@ -37,9 +41,9 @@ out center tags;
 """
 
 
-def fetch(icao: str) -> dict:
+def fetch(icao: str, endpoint: str) -> dict:
     data = urllib.parse.urlencode({"data": QUERY.format(icao=icao)}).encode()
-    req = urllib.request.Request(OVERPASS, data=data, headers={"User-Agent": "taxiout-research"})
+    req = urllib.request.Request(endpoint, data=data, headers={"User-Agent": "taxiout-research"})
     with urllib.request.urlopen(req, timeout=120) as r:
         return json.load(r)
 
@@ -54,15 +58,19 @@ def main() -> int:
     for icao in AIRPORTS:
         raw = out_dir / f"{icao}.json"
         if args.force or not raw.exists():
-            for attempt in range(6):
+            attempts = 8
+            for attempt in range(attempts):
+                endpoint = OVERPASS[attempt % len(OVERPASS)]
                 try:
-                    raw.write_text(json.dumps(fetch(icao)))
+                    raw.write_text(json.dumps(fetch(icao, endpoint)))
                     break
-                except urllib.error.HTTPError as e:
-                    if e.code not in (429, 502, 503, 504) or attempt == 5:
+                except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
+                    code = getattr(e, "code", None)
+                    busy = code in (429, 502, 503, 504) or code is None
+                    if not busy or attempt == attempts - 1:
                         raise
                     wait = 30 * (attempt + 1)
-                    print(f"{icao}: 429, backing off {wait}s")
+                    print(f"{icao}: {code or type(e).__name__} from {endpoint}, retry in {wait}s")
                     time.sleep(wait)
             time.sleep(15)
         doc = json.loads(raw.read_text())
