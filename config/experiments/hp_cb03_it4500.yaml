@@ -1,0 +1,42 @@
+name: hp_cb03_it4500
+description: |
+  cb03's recipe with one change: 4,500 iterations instead of 3,000 at the same learning rate --
+  the change that moved its sibling cb04 by -1.36 over four months (hp_cb04_it4500; every month
+  better) and passed the stack gate (-0.46 against F1).
+  Question: does cb03, which also serves the NM-unmatched rows alone, under-fit the same way?
+  Baseline: cb03_k20_combo_adsb on final_pairs, same code: trimmed RMSE without Rome 198.20
+  (Jan 186.96, Feb 221.47, Jun 172.15, Jul 211.30).
+  Population: all departures of the four held-out months. Reading, fixed before running: judged in
+  the stack (a129, against F1 with cb04 at 4,500) as a replacement for cb03 and as an addition beside
+  it; accepted only if the stack's trimmed RMSE without Rome improves on at least 3 of the 4 months
+  and by at least 0.3 s over the four.
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- modes6
+- context_window
+- gate_retention
+- eurocontrol_daily
+- adsb
+train_label_cap: 10800
+model:
+  kind: catboost
+  params:
+    iterations: 4500
+    learning_rate: 0.05
+    depth: 10
+    thread_count: 8
+    border_count: 1024
+folds: final_pairs
+tags:
+  family: tuning
