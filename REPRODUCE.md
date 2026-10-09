@@ -133,6 +133,27 @@ What changes in that phase:
 - **Overrides become rules.** The four override files are regenerated from the final file by the
   same scripts, and a120 computes the cell shift for all four months against the build without
   the shift (`make PHASE=final stack-noshift cellshift`).
+- **The final submission's members and stack.** _To be filled in when the final submission is
+  chosen: its composition file in `config/compositions/`, and `--unmatched-without-month 02`
+  in the stack flags (the NM-unmatched vector for January, June and July fitted without February
+  2025; [README](README.md#the-final-phase))._
+- **A CatBoost CV can run one fold per job.** The fold sets `final_pairs_janjul` and
+  `final_pairs_febjun` are the two folds of `final_pairs`, so a long CV can run as two jobs; a
+  spot preemption then costs one fold, not two. `scripts/merge_oof.py <name>` joins the two
+  out-of-fold files, and the stacker and the analyses then read the merged one:
+
+  ```bash
+  TAXIOUT_PHASE=final uv run python scripts/run_experiments.py --folds final_pairs_janjul config/experiments/cb04_cb03_adsb_calib.yaml
+  TAXIOUT_PHASE=final uv run python scripts/run_experiments.py --folds final_pairs_febjun config/experiments/cb04_cb03_adsb_calib.yaml
+  TAXIOUT_PHASE=final uv run python scripts/merge_oof.py cb04_cb03_adsb_calib
+  ```
+
+**How long it took us.** On a GCE n2-standard-32 (32 vCPUs, 128 GB, spot), running four CatBoost
+jobs of 8 threads side by side, or LightGBM jobs of 4 threads: a CatBoost fold took 2.3–2.9 h at
+3,000 iterations and about 3.6 h at 4,500; a CatBoost twelve-month refit 2.8–3.4 h at 3,000
+iterations. A LightGBM CV (both folds) took 16–72 min, the routed rb01 about 1.6 h per fold; a
+LightGBM refit 7–45 min, rb01's about 3 h. The four override scripts, the two stack builds, a120 and the
+verification take a few minutes together.
 
 ## The light tier
 

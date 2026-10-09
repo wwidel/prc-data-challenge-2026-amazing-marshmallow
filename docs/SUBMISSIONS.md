@@ -7,6 +7,11 @@
 > internal documents, and paths on our build machine. The members of the best submission, v62,
 > are in `config/experiments/`; its build is in [`REPRODUCE.md`](../REPRODUCE.md); a digest of
 > what moved the score is in the [README](../README.md#where-the-score-came-from).
+>
+> **Rows from v63 on belong to the final phase** (2026-10-09 onwards) and were added to this copy
+> as they were scored. Each uploads the January and July half of a final-phase build, in the
+> leaderboard's row order, to check it against the leaderboard; their builds and the scripts they
+> cite are in this repository ([README](../README.md#the-final-phase)).
 
 Every file written by `scripts/make_submission.py`, appended automatically. **Fill in the
 leaderboard column by hand** when a score comes back — that column is the only record of how our
@@ -216,3 +221,5 @@ __v25's row says 26 members; `a062` printed "shipping member list: 27".__ The 22
 | 59 | 2026-10-08 | `..._rb01_an01` | `—` | — | — | — | — | — | 251.72 | v57 + **`an01_ab02_aobt_anchor`** (ab02 fitted on y − clip(MVT − AOBT_3, 0, 7200); solo CV 200.213, the best single member; `a081` beside v57 −0.509, transfer gate passed). Non-LIRF rows only. sha256 `1d3f6c12…6367eed80`. **+0.09 vs v57** — the seat check's sign did not transfer. |
 | 60 | 2026-10-08 | `..._rb01_pr01` | `—` | — | — | — | — | — | 251.69 | v57 + **`pr01_ab02_plan_residual`** (ab02 + `plan_residual`; CV 200.23; `a081` −0.108, weight 0.278). Matched non-LIRF rows only. sha256 `0adcc8d2…d93678f9`. **+0.06 vs v57.** The block's 2026 mean is +46 s above 2025's (a080). |
 | 62 | 2026-10-08 | `..._rb01_lirfum_lg01_cb04` | `—` | — | — | — | — | — | **251.25** | v58's layers (ROME_UNM = the lg01 override, cell shift) + **`cb04_cb03_adsb_calib`** (cb03 + adsb_calib; CV 200.349 vs cb03 200.47; `a081` beside v57 −0.146, transfer gate passed). Built with `~/build_candidate.sh` on `docs/compositions/v61_members.txt` (v61 itself, the chain's build without the cell shift, was not uploaded). Non-LIRF rows move (matched mean −2.0 s, |Δ| 6.2). sha256 `bff918f7…a4802b2c`. **Best: −0.20 vs v58** (251.4458 → 251.2454). |
+| 63 | 2026-10-09 | `F0` (final phase, its Jan/Jul half) | `—` | — | — | — | — | — | 251.85 | **The final-phase pipeline on v62's seven members**, refitted on `final_ranking.parquet` (`TAXIOUT_PHASE=final`; the organisers' ±12 s on takeoff times, `a126`). Grouped NNLS fitted on the four months of `final_pairs` out-of-fold predictions: matched rb01 0.250 / ab07 0.205 / cb03 0.275 / cb04 0.275, t05 / f25 / q04 0; unmatched cb03 1.151. The four override files regenerated on the four months (Rome blend r14 + ab07 0.174); a120's cell shift computed on F0's own build without the shift. LOBT window ±3,618 s. `verify_stack` passes. Stack CV (`a129`, four months, weights fitted on the other pair): 198.09 (Jan 188.21, Feb 220.92, Jun 169.44, Jul 212.58). **+0.61 vs v62** (251.2454 → 251.8545); `a132`–`a135` explain the difference. |
+| 64 | 2026-10-09 | `F1` (final phase, its Jan/Jul half) | `—` | — | — | — | — | — | 251.82 | **F0 with the `snow` block on the five LightGBM members** (q04s, ab07s, rb01s, t05s, f25s; cb03 and cb04 unchanged). Matched weights cb03 0.244 / cb04 0.266 / ab07s 0.155 / rb01s 0.331 / f25s 0.008 / t05s 0.0004 / q04s 0; unmatched cb03 1.151. Cell shift recomputed on F1's own build. `verify_stack` passes. Stack CV 197.76 (Jan 187.90, Feb 220.01, Jun 169.35, Jul 212.49), −0.33 vs F0, every month better. **−0.03 vs v63** (251.8545 → 251.8221). |

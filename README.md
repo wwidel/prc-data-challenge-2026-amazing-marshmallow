@@ -3,13 +3,14 @@
 Our solution to the [PRC Data Challenge 2026](https://prc-data-challenge-2026.netlify.app/):
 predicting the **taxi-out time** of departures at ten large European airports. The best
 submission, **v62**, scored a leaderboard RMSE of **251.25 s** (251.2454). Our first model scored
-433.80, and a group-mean baseline 604.41.
+433.80, and a group-mean baseline 604.41. The organisers then added a final phase on four months of
+2026; [The final phase](#the-final-phase) describes what we changed for it.
 
-This repository holds the code that builds v62, the analyses behind the claims below, and the
-full submission history ([`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md)). It holds **no data**: the
-competition files cannot be redistributed, and every open source is pulled by a script.
-[`REPRODUCE.md`](REPRODUCE.md) gives the build steps and timings, and a light version that runs in
-minutes.
+This repository holds the code that builds v62 and our final-phase submission, the analyses behind
+the claims below, and the full submission history ([`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md)).
+It holds **no data**: the competition files cannot be redistributed, and every open source is
+pulled by a script. [`REPRODUCE.md`](REPRODUCE.md) gives the build steps and timings, and a light
+version that runs in minutes.
 
 **Contents.**
 [The challenge](#the-challenge) ·
@@ -18,6 +19,7 @@ minutes.
 [The best submission](#the-best-submission-v62) ·
 [Where the score came from](#where-the-score-came-from) ·
 [What did not work](#what-did-not-work) ·
+[The final phase](#the-final-phase) ·
 [Learnings](#learnings) ·
 [Where each number comes from](#where-each-number-comes-from) ·
 [Credits](#credits) ·
@@ -33,7 +35,11 @@ minutes.
   arrivals.
 - **Metric.** RMSE over all 344,841 departures. There is no public/private split.
 - **Rules.** Five submissions a day; teams are ranked on their best. External data is allowed if
-  it is openly accessible, documented and openly licensed. The deadline was 11 October 2026.
+  it is openly accessible, documented and openly licensed. The leaderboard closed on 11 October
+  2026.
+- **Final phase.** One submission predicting the 670,790 departures of January, February, June and
+  July 2026, ranked on January + July, on February + June and on all four months. The deadline is
+  14 October 2026, 10:00 UTC.
 
 ## What makes the data hard
 
@@ -82,7 +88,7 @@ The scripts named in brackets are in [`scripts/analysis/`](scripts/analysis); th
 | [IEM ASOS/METAR](https://mesonet.agron.iastate.edu/request/download.phtml) (Iowa Environmental Mesonet) | METARs for the ten ICAOs, mid-Dec 2024 to Jul 2026: temperature, dew point, humidity, wind, gust, visibility, weather codes | `weather`: the last observation before takeoff, plus de-icing memory (hours at or below 0 °C in the last 24 h, sub-zero streaks) | **used**; dropping the block cost +1.40 trimmed CV |
 | [X-Plane Scenery Gateway](https://gateway.x-plane.com/) | each airport's recommended scenery pack: stand positions (apt.dat row 1300) and runway thresholds (row 100) | `stand_geometry`: distance from stand to departure threshold | **used**; it also covers stands never seen in training |
 | [OpenStreetMap](https://www.openstreetmap.org/) via Overpass | `aeroway=parking_position` / `gate` names and positions | `stand_geometry`, filling the Gateway's gaps (LTFM 0 → 99%, EDDM 70 → 99%) | **used** |
-| [adsb.lol](https://www.adsb.lol/) `globe_history` | 427 days of traces (2025, Jan and Jul 2026), cut to each airport's box, on the ground or below 3,000 ft | `adsb`: each departure's own ground segment and takeoff. `adsb_calib`: the same, relative to its airport-month's receiver behaviour | **used**; the largest late gain (v47, −12.59 board) |
+| [adsb.lol](https://www.adsb.lol/) `globe_history` | 485 days of traces (2025; Jan, Feb, Jun and Jul 2026), cut to each airport's box, on the ground or below 3,000 ft | `adsb`: each departure's own ground segment and takeoff. `adsb_calib`: the same, relative to its airport-month's receiver behaviour | **used**; the largest late gain (v47, −12.59 board) |
 | [EUROCONTROL](https://ansperformance.eu/csv/) daily series (ATFM slot adherence, all and ATC pre-departure delay) | per airport and day, 2025 and 2026 | `eurocontrol_daily` | **used** (with two other blocks, v46 −2.43) |
 | EUROCONTROL monthly taxi-out indicator (`taxi_out_additional_time`) | per airport-month: flights, valid flights, reference and additional minutes | the cell shift: 11 airport-months moved halfway to the published level, net of the offset the 2025 labels measure (`a120`) | **used** (v56 −0.37) |
 | [OPDI](https://www.opdi.aero/) v002 flight lists (EUROCONTROL PRC + OpenSky Network) | monthly flight lists: aircraft, callsign, first and last seen | `opdi`: the same aircraft's ground time since its previous leg; Rome only, through `lg01` | **used** (v58 −0.18) |
@@ -233,6 +239,69 @@ rows' level from board results.
 | a second-stage model on the stack's residuals | no gain in CV |
 | XGBoost; an MLP; a linear-tree LightGBM | XGBoost earned no stack weight. The other two carried weight in earlier stacks but none among v62's 20 candidates |
 
+## The final phase
+
+After the leaderboard closed, the organisers added a final phase: one submission predicting
+`final_ranking.parquet`, the 670,790 departures of January, February, June and July 2026. This
+repository builds it with `TAXIOUT_PHASE=final` ([`REPRODUCE.md`](REPRODUCE.md#the-final-phase)).
+
+**What changed in the data.** The final file holds every leaderboard departure again, plus 325,949
+from February and June. The organisers moved every takeoff time, and every arrival's in-block time,
+by an integer number of seconds in [−12, 12], independently per row; nothing else changed
+(`a126`). Our exact bounds widen by that much: the LOBT window to ±3,618 s, the gap bound to
++1,812 s, the LEBL/LEMD ceilings to 3,624 s.
+
+**How we judged changes.** Cross-validation holds out January + July 2025 and February + June
+2025, each trained on the other ten months. `a129` scores the stack per month with its weights
+fitted on the other pair. A change was kept only if the stack improved in at least 3 of the 4
+months and by at least 0.3 s over the four (trimmed RMSE without Rome), a rule fixed before
+running. Placebo members, the same configs plus three columns of noise (the `placebo` block), set
+the scale: they moved a member by up to 0.9 s in one month, and the stack by 0.01 s.
+
+| step | what changed | stack CV, four months (`a129`) | board, Jan/Jul half |
+|---|---|---:|---:|
+| F0 | v62's seven members refitted on the final file; weights, Rome blend and cell shift fitted for the four months | 198.09 | v63: 251.85 |
+| F1 | the `snow` block on the five LightGBM members | 197.76 | v64: 251.82 |
+| F1u | the NM-unmatched rule below | 196.05¹ | — |
+| F2a | cb04 at 4,500 iterations | 195.59 | v65: _pending_ |
+| final | _to be filled in when chosen_ | | |
+
+¹ In `a129` the January + July vector is fitted on February + June alone, which overstates this
+rule. Holding out one month at a time puts it at −1.13 over the four months (`a137`).
+
+**v63 against v62.** The refitted members differ from v62's by about 31 s RMS on the leaderboard
+rows, and the takeoff noise explains 2–4% of that (`a132`). The rest follows from inputs that the
+final file changes: stand taxi-in statistics now include its February and June arrivals, and two
+blocks renumber their categories (`a133`). 0.1% of ADS-B matches changed (`a134`). The four-month
+weights also put the January and July NM-unmatched rows 110 s above v62's (`a135`), which is what
+the unmatched rule below addresses.
+
+**February and snow.** February is the hardest month. Istanbul carries half of its trimmed squared
+error, and two snow days there carry 30%: on 19 and 23 February 2025 its departures averaged 46 and
+49 minutes and were under-predicted by about 930 s (`a127`, `a128`). The `snow` block counts METAR
+snow reports in the 3 to 48 hours before takeoff, heavy snow and freezing rain, the day's total and
+the hours since the last report. It cut the LightGBM members' February error by 1.6 to 8.4 s and
+barely moved the CatBoost members' (cb04 +0.19, cb03 −0.59, with its NM-unmatched rows worse). In
+the stack the five LightGBM swaps passed the gate, February −0.91, and adding the two CatBoost
+swaps made it worse than F0 (+0.22). Summer thunderstorms, checked the same way, left too little
+to model (`a131`).
+
+**The NM-unmatched rows.** v62's stack gives these 1% of rows their own NNLS vector. Fitted on the
+four months it is cb03 × 1.151, pulled up by February's two storm days at Istanbul, which hold 66%
+of February's unmatched squared error (`a137`). Holding out one month at a time, a vector fitted
+without February is better on January, June and July by 1.32, 1.24 and 1.84 s, and no rule that
+excludes February predicts February. So the unmatched vector for January, June and July is fitted
+without February 2025 (it sums to 1.037), and February's unmatched rows keep the four-month vector
+(`build_stack.py --unmatched-without-month 02`). On the 2026 rows this lowers the unmatched
+predictions by 168 s in January and by 106 s in June and July.
+
+**Tuning.** The CatBoost members were short of iterations: cb04 at 4,500 instead of 3,000 improved
+every month by 1.2 to 1.6 s as a member, and passed the stack gate. Nothing else passed: five
+variants of ab07 with the snow block (feature fraction, categorical smoothing, bagging, extra
+trees, Huber loss), a lower learning rate on ab07, and `l2_leaf_reg` 10 on cb04. _Pending: random_strength 3 and
+learning rate 0.03 on cb04, cb03 at 4,500 iterations._ Seed replicates were not run: a
+near-replicate of ab07 placed beside it moved the stack by 0.013 s.
+
 ## Learnings
 
 - **Find out how the label was written before you model it.** After the first LightGBM, 28 Rome
@@ -263,16 +332,21 @@ rows' level from board results.
 
   Version every composition, check the extremes of each build, and join each override back
   before uploading.
+- **Check whether a fitted level belongs to one month.** In the final phase, one weight vector for
+  the NM-unmatched rows, fitted on four months, was set by two storm days in one of them. Holding
+  out one month at a time showed it in minutes. A placebo member, the same model plus noise
+  columns, is as cheap, and says how small a gain can be and still be real.
 - **Read the other teams' write-ups.** Our largest late gain (ADS-B, −12.59) and two smaller ones
   (the context blocks, the LOBT window) were ideas another team had published.
 
 ## Repository layout
 
 ```
-config/experiments/        the nine configs: seven members, the Rome layer (r14), the Rome gate-delay model (lg01)
-config/compositions/       v62's member list
+config/experiments/        v62's nine configs (seven members, the Rome layer r14, the Rome gate-delay model lg01),
+                           and the final phase's variants: snow, placebo controls, tuning
+config/compositions/       the member lists: v62's and the final submission's
 config/cellshift_v54.csv   the 11 airport-month shifts v62 applies
-src/taxiout/               io, row spine, feature store (24 blocks), CV, models, post-processing
+src/taxiout/               io, row spine, feature store (26 blocks), CV, models, post-processing
 scripts/                   data pulls, spine and feature builds, CV, refits, the stack, the light tier
 scripts/analysis/          the analyses behind this README, and the generators of the four override files
 tests/                     pure-logic tests always run; data-dependent ones skip without the data
@@ -300,6 +374,13 @@ competition data.
 | delay by cause tested and rejected | `a118_apt_dly.py` |
 | Rome: lg01 against r14, cross-fold; its override | `a124_lirf_gate_delay.py`, `a125_lirf_um_override.py` |
 | the 27 huge-gap rows; the Rome matched-row blend | `a050_pop27_values.py`, `a111_rome_matched_blend.py` |
+| final phase: the organisers' ±12 s on takeoff times | `a126_final_randomness.py` |
+| February's error: Istanbul's snow days | `a127_february_error.py`, `a128_feb_jun_level_and_snow.py` |
+| the stack on the final phase's folds; members per month | `a129_stack_cv.py`, `a130_member_months.py` |
+| summer thunderstorms | `a131_summer_thunderstorms.py` |
+| F0 against v62: refits, feature stores, ADS-B matches | `a132_board_vs_final.py`, `a133_feature_drift_between_phases.py`, `a134_adsb_matches_under_noise.py` |
+| the NM-unmatched level per pair and per held-out month | `a135_unmatched_level.py`, `a137_unmatched_month_transfer.py` |
+| two builds of the final file compared | `a136_compare_builds.py` |
 | board scores and their deltas | [`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md) |
 
 Cross-validated member scores are from our run log. They are reproduced by `make cv`.
