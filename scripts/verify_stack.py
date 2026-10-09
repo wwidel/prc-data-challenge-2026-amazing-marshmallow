@@ -17,7 +17,7 @@ from pathlib import Path
 
 import polars as pl
 
-from taxiout import io, paths
+from taxiout import io, paths, postprocess
 
 #: The one-row override predicts 86,340 s (that row's takeoff − aobt_3) and the pop27 rows take
 #: schedule gaps near 87,500 s; a correct v62 build has a maximum of 111,654. A maximum at or below
@@ -89,22 +89,47 @@ def main() -> int:
             "did not land"
         )
 
+    # The LOBT window's floor per row: the one bound that can RAISE a prediction.
+    floor = (
+        io.scan_ranking()
+        .filter(pl.col("phase") == "DEP")
+        .select(
+            "mvt_id",
+            pl.max_horizontal(
+                (pl.col("mvt_time") - pl.col("lobt")).dt.total_seconds().cast(pl.Float64)
+                - postprocess.LOBT_WINDOW,
+                pl.lit(0.0),
+            ).alias("floor"),
+        )
+        .collect(engine="streaming")
+    )
     for spec in args.overrides:
         ov = pl.read_parquet(spec, glob=False)
         col = next(c for c in ov.columns if c != "mvt_id")
-        j = sub.select(
-            pl.col("MVT_ID_mvt").cast(pl.Int64).alias("mvt_id"),
-            pl.col("TAXITIME_SEC_mvt").cast(pl.Float64).alias("shipped"),
-        ).join(ov.select("mvt_id", pl.col(col).alias("intended")), on="mvt_id", how="inner")
+        j = (
+            sub.select(
+                pl.col("MVT_ID_mvt").cast(pl.Int64).alias("mvt_id"),
+                pl.col("TAXITIME_SEC_mvt").cast(pl.Float64).alias("shipped"),
+            )
+            .join(ov.select("mvt_id", pl.col(col).alias("intended")), on="mvt_id", how="inner")
+            .join(floor, on="mvt_id", how="left")
+        )
         if j.height != ov.height:
             problems.append(f"{spec}: {ov.height - j.height} of {ov.height} rows did not land")
         d = j["shipped"] - j["intended"]
-        # Bounds run AFTER the overrides, so shipped BELOW intended is legitimate; above is not.
-        above = int((d > 1.0).sum())
+        # Bounds run AFTER the overrides. The schedule-gap bound and the ceilings only lower a
+        # row; the LOBT window (`--lobt-window`, last) can also raise one, but only to its floor.
+        # Anything else above the override means a later step overwrote it.
+        up = d > 1.0
+        raised = up & ((j["shipped"] - j["floor"]).abs() <= 1.0).fill_null(False)
+        above = int((up & ~raised).sum())
+        n_raised = int(raised.sum())
         lowered = int((d < -1.0).sum())
+        exact = j.height - above - n_raised - lowered
         print(
-            f"  {spec.split('/')[-1]:24s} {j.height:4d} joined, {j.height - above - lowered:4d} "
-            f"exact, {lowered:3d} lowered by the bounds, {above:3d} ABOVE their override"
+            f"  {spec.split('/')[-1]:24s} {j.height:5d} joined, {exact:5d} exact, {lowered:3d} "
+            f"lowered by the bounds, {n_raised:3d} raised to the LOBT floor, {above:3d} ABOVE "
+            "their override"
         )
         if above:
             problems.append(f"{spec}: {above} rows ship above their override value")
