@@ -1,0 +1,35 @@
+name: f25p_f25_placebo
+description: |
+  Control: f25 plus the placebo block (three noise columns keyed on the movement ID). Question:
+  how far does adding a block that carries nothing move f25's per-month score? Baseline:
+  f25_queue2 on final_pairs, same code: trimmed RMSE without Rome 229.70 (Jan 210.85, Feb 268.15,
+  Jun 203.71, Jul 236.22). Population: all departures of the four held-out months. Reading: no
+  gate; its per-month deltas (a130_member_months.py) are the noise floor for f25s's screen
+  (Jan −0.86, Feb −3.81, Jun +0.77, Jul +1.01), and its swap in a129 that for the stack's gate.
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- queue2
+- placebo
+model:
+  kind: lgbm
+  params:
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 100
+    max_bin: 511
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: final_pairs
+tags:
+  family: control

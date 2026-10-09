@@ -2,7 +2,7 @@
 
 One module per family; see :mod:`taxiout.features.registry` for the declaration rules. This
 package holds the 24 blocks that the members of the best submission (v62) read, plus `snow`
-(final phase, 2026-10-08).
+(final phase, 2026-10-08) and `placebo`, a control of noise columns for reading the screens.
 """
 
 from taxiout.features import (  # noqa: F401
@@ -21,6 +21,7 @@ from taxiout.features import (  # noqa: F401
     modes6,
     offblock,
     opdi,
+    placebo,
     queue2,
     runway_config,
     runway_history,
