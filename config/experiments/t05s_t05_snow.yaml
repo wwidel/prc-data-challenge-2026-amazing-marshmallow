@@ -1,0 +1,37 @@
+name: t05s_t05_snow
+description: |
+  Screen: t05 plus the snow block, the change q04s, ab07s, rb01s, cb04s and cb03s make to their
+  members. Question: does the Huber member's February improve when it sees a storm's size?
+  Baseline: t05_huber_alpha[alpha=600] on final_pairs, same code: trimmed RMSE without Rome
+  232.10 (Jan+Jul 228.22, Feb+Jun 236.12). The grid's one value is written as a parameter here.
+  Population: all departures of the four held-out months. Reading, fixed before running: as for
+  q04s, a gain if February improves by at least 1.0 s and no other month worsens by more than
+  0.3 s (a130_member_months.py); whether it enters the stack is a129's gate.
+features:
+- calendar
+- offblock
+- stand_runway
+- taxi_in
+- flight_match
+- runway_config
+- congestion
+- consistency
+- modes
+- runway_history
+- weather
+- stand_geometry
+- snow
+model:
+  kind: lgbm
+  params:
+    objective: huber
+    alpha: 600
+    learning_rate: 0.03
+    num_leaves: 511
+    min_data_in_leaf: 100
+    max_bin: 511
+    num_boost_round: 4000
+    early_stopping_rounds: 200
+folds: final_pairs
+tags:
+  family: snow
