@@ -12,11 +12,14 @@
 #   3. every candidate set in A129_SETS beside it, with the deltas and the gate fixed in advance:
 #      better on at least 3 of the 4 months and by at least 0.3 s over the four.
 # A129_SETS: "name=-member,+member;name2=+member" — changes relative to the base.
+# A129_BASE: a file listing the base's members, one per line (default: the BASE composition).
 
 # %%
 import os
 
 os.environ.setdefault("POLARS_MAX_THREADS", "4")
+
+from pathlib import Path  # noqa: E402
 
 import numpy as np  # noqa: E402
 import polars as pl  # noqa: E402
@@ -30,7 +33,8 @@ TRIM = 43_200.0
 GROUP_MIN_ROWS = 2000
 PAIRS = {"Jan+Jul": ("2025-01", "2025-07"), "Feb+Jun": ("2025-02", "2025-06")}
 GATE_MONTHS, GATE_POOLED = 3, -0.3
-BASE = paths.composition()
+BASE_FILE = os.environ.get("A129_BASE", "")
+BASE = Path(BASE_FILE).read_text().split() if BASE_FILE else paths.composition()
 SPEC = os.environ.get("A129_SETS", "")
 
 rec = analysis.Recorder("a129_stack_cv", "The stack on the final phase's folds, cross-pair weights")
@@ -81,6 +85,7 @@ lab = (
 )
 frame = frame.join(lab, on="mvt_id", how="inner")
 months = sorted(frame["month"].unique().to_list())
+rec.say(f"  base from {BASE_FILE or 'the BASE composition'} ({len(BASE)} members)")
 rec.say(f"  joined rows {frame.height:,}; months {months}; base: {', '.join(BASE)}")
 for k, v in sets.items():
     if k != "base":
