@@ -46,6 +46,8 @@ EXPECTED_RAW_FILES = {
     "training_2025-12-01_2026-01-01.parquet": 331_548,
 }
 EXPECTED_RAW_ROWS = {"training": 4_167_797, "ranking": 689_534, "submitting": 344_841}
+#: The final phase's two files: required under TAXIOUT_PHASE=final, allowed (and checked) otherwise.
+FINAL_RAW_FILES = {"final_ranking.parquet": 1_341_197, "final_submitting.parquet": 670_790}
 
 CACHEABLE = [n for n, b in REGISTRY.items() if b.kind.cacheable]
 
@@ -58,16 +60,21 @@ def test_raw_files_are_complete():
     `rsync` to re-run and a list of missing filenames does.
     """
     problems = []
-    for name, expected in EXPECTED_RAW_FILES.items():
+    for name, expected in {**EXPECTED_RAW_FILES, **FINAL_RAW_FILES}.items():
         path = paths.RAW / name
         if not path.exists():
-            problems.append(f"{name}: MISSING (expected {expected:,} rows)")
+            if name in EXPECTED_RAW_FILES or paths.FINAL:
+                problems.append(f"{name}: MISSING (expected {expected:,} rows)")
             continue
         got = pl.scan_parquet(path).select(pl.len()).collect().item()
         if got != expected:
             problems.append(f"{name}: {got:,} rows, expected {expected:,} ({got - expected:+,})")
 
-    extra = {p.name for p in paths.RAW.glob("*.parquet")} - set(EXPECTED_RAW_FILES)
+    extra = (
+        {p.name for p in paths.RAW.glob("*.parquet")}
+        - set(EXPECTED_RAW_FILES)
+        - set(FINAL_RAW_FILES)
+    )
     if extra:
         problems.append(f"unexpected files in data/raw: {sorted(extra)}")
 
@@ -86,7 +93,8 @@ def test_spine_covers_every_month():
 def test_spine_rows_are_unique_departures():
     sp = spine.load()
     assert sp["mvt_id"].n_unique() == sp.height
-    assert sp["taxi_sec"].null_count() == 344_841, "only ranking departures may lack a target"
+    n_rank = pl.scan_parquet(paths.SUBMITTING).select(pl.len()).collect().item()
+    assert sp["taxi_sec"].null_count() == n_rank, "only ranking departures may lack a target"
 
 
 @requires_spine
@@ -235,7 +243,7 @@ def test_submission_validates_and_round_trips():
         postprocess.template().select("mvt_id", pl.lit(900.0).alias("prediction"))
     )
     postprocess.validate(built)
-    assert built.height == 344_841
+    assert built.height == postprocess.template().height  # 344,841; 670,790 in the final phase
     assert built["TAXITIME_SEC_mvt"].dtype == pl.Int32
     assert (built["TAXITIME_SEC_mvt"] == 900).all()
 

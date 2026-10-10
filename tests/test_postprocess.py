@@ -17,7 +17,8 @@ def test_airport_ceilings_clip_only_the_named_airports():
         }
     )
     out = postprocess.apply_airport_ceilings(frame).sort("mvt_id")
-    assert out["prediction"].to_list() == [3_600.0, 3_000.0, 9_000.0, 1_200.0]
+    ceiling = postprocess.AIRPORT_CEILINGS["LEBL"]  # 3,600 s; 3,624 in the final phase
+    assert out["prediction"].to_list() == [ceiling, 3_000.0, 9_000.0, 1_200.0]
 
 
 def test_airport_ceilings_are_a_no_op_when_empty():
@@ -30,13 +31,14 @@ def test_gap_bound_clips_only_impossible_positive_gap_rows():
         {
             "mvt_id": [1, 2, 3, 4, 5],
             # late flight predicted far above its own delay | comfortably inside the bound
-            # | negative gap (left alone) | null gap (left alone) | exactly on the bound
+            # | negative gap (left alone) | null gap (left alone) | on or inside the bound
             "gap": [1_200.0, 9_000.0, -600.0, None, 1_000.0],
             "prediction": [8_000.0, 1_500.0, 9_999.0, 9_999.0, 2_800.0],
         }
     )
     out = postprocess.apply_gap_bound(frame).sort("mvt_id")
-    assert out["prediction"].to_list() == [3_000.0, 1_500.0, 9_999.0, 9_999.0, 2_800.0]
+    bound = 1_200.0 + postprocess.GAP_SLACK  # 3,000 s; 3,012 in the final phase
+    assert out["prediction"].to_list() == [bound, 1_500.0, 9_999.0, 9_999.0, 2_800.0]
 
 
 def test_gap_bound_demands_the_gap_column():
