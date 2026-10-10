@@ -1,9 +1,12 @@
-# Reproducing the best submission (v62, leaderboard 251.2454)
+# Reproducing our submissions: v62 and the final submission
 
-We don't expect anyone to rerun this end to end. If you do, plan for **about two and a half days
-of wall-clock time on one 8-vCPU, 32 GB machine**. Most of that is the ADS-B download and the two
-CatBoost members. All timings below were measured on the machine every v62 member ran on: a Google
-Compute Engine `c2-standard-8` (8 vCPUs, 31 GiB RAM, 4 physical cores).
+Two builds: **v62**, the best submission of the leaderboard phase (251.2454), and **the final
+submission** of the organisers' final phase ([below](#the-final-phase)). We don't expect anyone to
+rerun either end to end. If you do, plan for **about two and a half days of wall-clock time on one
+8-vCPU, 32 GB machine for v62**. Most of that is the ADS-B download and the two CatBoost members.
+The v62 timings below were measured on the machine every v62 member ran on: a Google Compute Engine
+`c2-standard-8` (8 vCPUs, 31 GiB RAM, 4 physical cores). The final phase's timings, on a larger
+machine, are in its section.
 
 For a result in minutes rather than days, see [the light tier](#the-light-tier) at the end.
 
