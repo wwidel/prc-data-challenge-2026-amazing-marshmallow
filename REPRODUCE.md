@@ -159,7 +159,10 @@ What changes in that phase:
   the NM-unmatched vector for January, June and July is fitted without February 2025
   ([README](README.md#the-final-phase)). `data/output/final.parquet` is the file to submit as
   `amazing-marshmallow_final.parquet`. Ours, submitted on 2026-10-10, has sha256
-  `54e3a6b61cc9bfde9413d4fcd0e62dae8421c8c37995f2d9373c5627c056664d`.
+  `54e3a6b61cc9bfde9413d4fcd0e62dae8421c8c37995f2d9373c5627c056664d`. A fresh clone of this
+  repository, given our cross-validation and refit predictions, rebuilds that file byte for byte,
+  with the same four override files and cell shift (`make PHASE=final overrides stack-noshift
+  cellshift stack verify`, 2026-10-10); the test suite passes in both phases.
 - **A CatBoost CV can run one fold per job.** The fold sets `final_pairs_janjul` and
   `final_pairs_febjun` are the two folds of `final_pairs`, so a long CV can run as two jobs; a
   spot preemption then costs one fold, not two. `scripts/merge_oof.py <name>` joins the two
