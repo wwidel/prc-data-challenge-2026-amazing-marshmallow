@@ -213,10 +213,10 @@ those rows' labels. We used this knowingly, a few times:
 - v12 and v13 added 2,000 s to Rome's 383 NM-unmatched rows, and then to January's 107 only, to
   measure their mean residual. v14, a similar shift on 69 rows, was rejected by the daily limit.
 - v16 and v17 shipped two value sets for the 27 huge-gap rows on the same base. Their scores imply
-  the rows' label sum, 97.5% of their gap sum. v18 then shipped the pure gap, which v62 still
-  uses.
+  the rows' label sum, 97.5% of their gap sum. v18 then shipped the pure gap, which v62 and the
+  final submission still use.
 - v24 shipped one row at its data-derived `takeoff − aobt_3` (86,340 s). The score change implies
-  that row's label, 86,400 s. v62 still ships 86,340.
+  that row's label, 86,400 s. v62 and the final submission still ship 86,340.
 - v38 applied only half of v37's change: the new weight vector for the 5,283 NM-unmatched rows,
   with v35's weights everywhere else. Because the two row sets are disjoint, the pair of scores
   splits v37's gain exactly: 94% of it came from those 1.5% of rows, where cross-validation had
