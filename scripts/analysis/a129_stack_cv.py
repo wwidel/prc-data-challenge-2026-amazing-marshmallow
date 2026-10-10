@@ -16,6 +16,9 @@
 # A129_UNMATCHED_WITHOUT: a calendar month MM (e.g. 02) — the NM-unmatched vector is fitted
 # without that month's rows and applied to the other months; that month's rows keep the vector
 # fitted on every fitting month (build_stack.py --unmatched-without-month).
+# A129_MATCHED_BY: `adsb` or `airport` — the NM-matched rows get one vector per value of that
+# column (ADS-B trace matched or not; airport) instead of one; a value with fewer than
+# GROUP_MIN_ROWS fitting rows keeps the matched vector.
 
 # %%
 import os
@@ -40,6 +43,7 @@ BASE_FILE = os.environ.get("A129_BASE", "")
 BASE = Path(BASE_FILE).read_text().split() if BASE_FILE else paths.composition()
 SPEC = os.environ.get("A129_SETS", "")
 HELD = os.environ.get("A129_UNMATCHED_WITHOUT", "")
+MATCHED_BY = os.environ.get("A129_MATCHED_BY", "")
 
 rec = analysis.Recorder("a129_stack_cv", "The stack on the final phase's folds, cross-pair weights")
 pl.Config.set_tbl_rows(40)
@@ -88,10 +92,29 @@ lab = (
     .collect(engine="streaming")
 )
 frame = frame.join(lab, on="mvt_id", how="inner")
+if MATCHED_BY == "adsb":
+    # whether the adsb block matched a trace, from the final-phase feature store
+    from taxiout import store
+    from taxiout.features import registry
+
+    block = store.block_dir(registry.get("adsb"))
+    parts = []
+    for m in sorted(frame["month"].unique().to_list()):
+        ids = pl.read_parquet(paths.SPINE / f"{m}.parquet", columns=["mvt_id"], glob=False)
+        v = pl.read_parquet(block / f"{m}.parquet", columns=["adsb_match_pri"], glob=False)
+        parts.append(pl.concat([ids, v], how="horizontal"))
+    cov = pl.concat(parts).select("mvt_id", pl.col("adsb_match_pri").is_not_null().alias("adsb"))
+    frame = frame.join(cov, on="mvt_id", how="left", maintain_order="left").with_columns(
+        pl.col("adsb").fill_null(False)
+    )
+elif MATCHED_BY and MATCHED_BY != "airport":
+    raise SystemExit(f"A129_MATCHED_BY must be adsb or airport, not {MATCHED_BY!r}")
 months = sorted(frame["month"].unique().to_list())
 rec.say(f"  base from {BASE_FILE or 'the BASE composition'} ({len(BASE)} members)")
 if HELD:
     rec.say(f"  NM-unmatched vector fitted without month {HELD} for the other months")
+if MATCHED_BY:
+    rec.say(f"  NM-matched rows: one vector per value of {MATCHED_BY!r}")
 rec.say(f"  joined rows {frame.height:,}; months {months}; base: {', '.join(BASE)}")
 for k, v in sets.items():
     if k != "base":
@@ -103,6 +126,7 @@ unm_all = frame["unm"].fill_null(False).to_numpy()
 month_all = frame["month"].to_numpy()
 not_lirf = (frame["airport"] != "LIRF").to_numpy()
 mm_all = np.array([m[-2:] for m in month_all])
+key_all = frame[MATCHED_BY].to_numpy() if MATCHED_BY else None
 
 
 def per_month(col: str) -> dict[str, float]:
@@ -132,6 +156,12 @@ def stack(members: list[str]) -> np.ndarray:
             w = nnls(X[rows], y_all[rows])[0] if rows.sum() >= GROUP_MIN_ROWS else w_glob
             sel = target & (unm_all == g)
             pred[sel] = X[sel] @ w
+            if not g and MATCHED_BY:
+                for v in np.unique(key_all[sel]):
+                    rows_v = rows & (key_all == v)
+                    w_v = nnls(X[rows_v], y_all[rows_v])[0] if rows_v.sum() >= GROUP_MIN_ROWS else w
+                    sel_v = sel & (key_all == v)
+                    pred[sel_v] = X[sel_v] @ w_v
             if g and HELD:
                 others = rows & (mm_all != HELD)
                 w_o = nnls(X[others], y_all[others])[0] if others.sum() >= GROUP_MIN_ROWS else w
