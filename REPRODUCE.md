@@ -149,10 +149,14 @@ What changes in that phase:
 - **Overrides become rules.** The four override files are regenerated from the final file by the
   same scripts, and a120 computes the cell shift for all four months against the build without
   the shift (`make PHASE=final stack-noshift cellshift`).
-- **The final submission's members and stack.** _To be filled in when the final submission is
-  chosen: its composition file in `config/compositions/`, and `--unmatched-without-month 02`
-  in the stack flags (the NM-unmatched vector for January, June and July fitted without February
-  2025; [README](README.md#the-final-phase))._
+- **The final submission's members and stack.** `PHASE=final` builds our final submission: the
+  seven members of `config/compositions/final_members.txt` (both CatBoost members at 4,500
+  iterations, the five LightGBM members with the `snow` block), r14 and lg01 for Rome, and ab07,
+  whose predictions the Rome matched-row blend reads. The stack adds `--unmatched-without-month 02`:
+  the NM-unmatched vector for January, June and July is fitted without February 2025
+  ([README](README.md#the-final-phase)). `data/output/final.parquet` is the file to submit as
+  `amazing-marshmallow_final.parquet`. Ours, submitted on 2026-10-10, has sha256
+  `54e3a6b61cc9bfde9413d4fcd0e62dae8421c8c37995f2d9373c5627c056664d`.
 - **A CatBoost CV can run one fold per job.** The fold sets `final_pairs_janjul` and
   `final_pairs_febjun` are the two folds of `final_pairs`, so a long CV can run as two jobs; a
   spot preemption then costs one fold, not two. `scripts/merge_oof.py <name>` joins the two
@@ -169,7 +173,9 @@ jobs of 8 threads side by side, or LightGBM jobs of 4 threads: a CatBoost fold t
 3,000 iterations and about 3.6 h at 4,500; a CatBoost twelve-month refit 2.8–3.4 h at 3,000
 iterations. A LightGBM CV (both folds) took 16–72 min, the routed rb01 about 1.6 h per fold; a
 LightGBM refit 7–45 min, rb01's about 3 h. The four override scripts, the two stack builds, a120 and the
-verification take a few minutes together.
+verification take a few minutes together. Packed four jobs at a time, the final phase's ten CV runs
+and ten refits take about half a day on that machine; ours took longer, around a spot preemption and
+the experiments in between.
 
 ## The light tier
 

@@ -1,10 +1,11 @@
 # PRC Data Challenge 2026 — taxi-out prediction, team amazing-marshmallow
 
 Our solution to the [PRC Data Challenge 2026](https://prc-data-challenge-2026.netlify.app/):
-predicting the **taxi-out time** of departures at ten large European airports. The best
-submission, **v62**, scored a leaderboard RMSE of **251.25 s** (251.2454). Our first model scored
-433.80, and a group-mean baseline 604.41. The organisers then added a final phase on four months of
-2026; [The final phase](#the-final-phase) describes what we changed for it.
+predicting the **taxi-out time** of departures at ten large European airports. Our best
+leaderboard score is **250.86 s** (v66, 250.8618): the January and July half of our final-phase
+submission. The best submission of the leaderboard phase, **v62**, scored 251.25 s (251.2454); our
+first model scored 433.80, and a group-mean baseline 604.41. [The final phase](#the-final-phase)
+describes what we changed for the organisers' final ranking, on four months of 2026.
 
 This repository holds the code that builds v62 and our final-phase submission, the analyses behind
 the claims below, and the full submission history ([`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md)).
@@ -16,7 +17,7 @@ version that runs in minutes.
 [The challenge](#the-challenge) ·
 [What makes the data hard](#what-makes-the-data-hard) ·
 [Open data](#open-data) ·
-[The best submission](#the-best-submission-v62) ·
+[The leaderboard-phase submission](#the-leaderboard-phase-submission-v62) ·
 [Where the score came from](#where-the-score-came-from) ·
 [What did not work](#what-did-not-work) ·
 [The final phase](#the-final-phase) ·
@@ -121,7 +122,7 @@ Statements we owe the reader:
 
   We redistribute none of it.
 
-## The best submission (v62)
+## The leaderboard-phase submission (v62)
 
 ```mermaid
 flowchart LR
@@ -265,7 +266,7 @@ the scale: they moved a member by up to 0.9 s in one month, and the stack by 0.0
 | F1u | the NM-unmatched rule below | 196.05¹ | — |
 | F2a | cb04 at 4,500 iterations | 195.59 | v65: **251.11** |
 | F2b | cb03 at 4,500 iterations | 195.21 | v66: **250.86** |
-| final | _to be filled in when chosen_ | | |
+| **final** | F2b, submitted on 10 October as `amazing-marshmallow_final.parquet` | 195.21 | its Jan/Jul half is v66 |
 
 ¹ In `a129` the January + July vector is fitted on February + June alone, which overstates this
 rule. Holding out one month at a time puts it at −1.13 over the four months (`a137`).
