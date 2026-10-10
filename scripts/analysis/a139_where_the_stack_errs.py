@@ -224,4 +224,24 @@ days = (
 )
 rec.say(f"  {days.height} airport-days; the top {TOP} carry {days['share'].head(TOP).sum():.1%}")
 rec.show(days.head(TOP))
+
+# %%
+rec.section("9. calibration: label against prediction, by prediction quantile, without Rome")
+q = d.filter(ex & pl.col("trim")).with_columns(
+    pl.col("prediction")
+    .qcut([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999], allow_duplicates=True)
+    .alias("prediction quantile")
+)
+rec.show(
+    q.group_by("prediction quantile")
+    .agg(
+        pl.len().alias("rows"),
+        pl.col("prediction").mean().round(0).alias("mean prediction"),
+        pl.col("y").mean().round(0).alias("mean label"),
+        pl.col("res").mean().round(1).alias("mean residual"),
+        pl.col("se").mean().sqrt().round(1).alias("rmse"),
+    )
+    .sort("mean prediction"),
+    "trimmed rows; residual = label − prediction",
+)
 rec.done()
