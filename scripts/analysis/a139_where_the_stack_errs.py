@@ -244,4 +244,20 @@ rec.show(
     .sort("mean prediction"),
     "trimmed rows; residual = label − prediction",
 )
+
+# %%
+rec.section("10. predictions under 60 s, all airports (Rome included)")
+low = d.filter(pl.col("prediction") < 60)
+rec.show(
+    low.group_by("airport", "unm")
+    .agg(
+        pl.len().alias("rows"),
+        pl.col("y").mean().round(0).alias("mean label"),
+        pl.col("y").median().alias("median label"),
+        pl.col("y").quantile(0.9).alias("label p90"),
+        pl.col("res").mean().round(0).alias("mean residual"),
+    )
+    .sort("airport", "unm"),
+    "label − prediction on rows the build predicts under a minute",
+)
 rec.done()
