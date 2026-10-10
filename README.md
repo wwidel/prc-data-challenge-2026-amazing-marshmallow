@@ -217,7 +217,10 @@ those rows' labels. We used this knowingly, a few times:
   uses.
 - v24 shipped one row at its data-derived `takeoff − aobt_3` (86,340 s). The score change implies
   that row's label, 86,400 s. v62 still ships 86,340.
-- v38 split v37's change by population.
+- v38 applied only half of v37's change: the new weight vector for the 5,283 NM-unmatched rows,
+  with v35's weights everywhere else. Because the two row sets are disjoint, the pair of scores
+  splits v37's gain exactly: 94% of it came from those 1.5% of rows, where cross-validation had
+  predicted a small loss.
 
 Apart from that one shipped row, we never changed rows one at a time. A proposed bisection over the
 long-label tail (about 13 submissions) was never run. After v40 we stopped setting the NM-unmatched
