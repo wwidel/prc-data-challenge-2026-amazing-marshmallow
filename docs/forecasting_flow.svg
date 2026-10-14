@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1500" height="975" viewBox="0 0 1500 975" role="img" aria-label="Full pipeline: three recording-mode estimators, six weighted stack members, three Rome models, a row router and three NNLS weight vectors, the Rome blend, and nine fixed steps in order to the prediction." xmlns="http://www.w3.org/2000/svg"><style>svg{--bg:#ffffff;--fg:#1f2328;--muted:#59636e;--line:#6e7781;--grid:#d1d9e0;
+--clf-f:#f1eaff;--clf-s:#6f42c1;--reg-f:#e6f0ff;--reg-s:#2f6fde;--comb-f:#fff2dc;--comb-s:#b35900;
+--step-f:#ffffff;--step-s:#57606a;--data-f:#f6f8fa;--data-s:#8c959f;--out-f:#dafbe1;--out-s:#1a7f37;
+--grp-m:#f7f4ff;--grp-p:#f6f8fa;--hot:#d1242f;--chip:#eaeef2}
+@media (prefers-color-scheme: dark){svg{--bg:#0d1117;--fg:#e6edf3;--muted:#9198a1;--line:#8b949e;--grid:#30363d;
+--clf-f:#271d40;--clf-s:#b392f0;--reg-f:#10243f;--reg-s:#6ea8ff;--comb-f:#3a2708;--comb-s:#f0a742;
+--step-f:#0d1117;--step-s:#8b949e;--data-f:#161b22;--data-s:#6e7681;--out-f:#0f2d1a;--out-s:#3fb950;
+--grp-m:#16132a;--grp-p:#151a21;--hot:#ff7b72;--chip:#21262d}}
+text{fill:var(--fg);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+rect.bg{fill:var(--bg)}
+text{fill:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.nt{font-size:13px;font-weight:600} .ns{font-size:11.5px;fill:var(--muted)}
+.el{font-size:11.5px;fill:var(--muted);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.el.muted{fill:var(--muted)}
+.note{font-size:12px;fill:var(--muted)} .cap{font-size:12.5px;fill:var(--muted);font-style:italic}
+.mono{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:var(--muted)}
+.grplabel{font-size:11px;font-weight:700;letter-spacing:.06em;fill:var(--muted)}
+.step-no{font-size:13px;font-weight:700;fill:var(--muted)}
+rect.grpm{fill:var(--grp-m)} rect.grpp{fill:var(--grp-p)} rect.grp{fill:var(--grp-p)}
+rect.n{stroke-width:1.5px}
+rect.clf{fill:var(--clf-f);stroke:var(--clf-s)} rect.reg{fill:var(--reg-f);stroke:var(--reg-s)}
+rect.comb{fill:var(--comb-f);stroke:var(--comb-s)} rect.step{fill:var(--step-f);stroke:var(--step-s)}
+rect.data{fill:var(--data-f);stroke:var(--data-s);stroke-dasharray:5 3} rect.out{fill:var(--out-f);stroke:var(--out-s);stroke-width:2px}
+path.e{fill:none;stroke-width:1.4px;stroke-linejoin:round}
+path.flow{stroke:var(--line)} path.muted{stroke:var(--grid)} path.hot{stroke:var(--hot)}
+path.fit{stroke:var(--line);stroke-dasharray:5 4} path.vio{stroke:var(--clf-s)} path.ah.vio{fill:var(--clf-s)}
+path.ah.flow,path.ah.fit{fill:var(--line)} path.ah.muted{fill:var(--grid)} path.ah.hot{fill:var(--hot)}
+path.band{fill:none;stroke:var(--reg-s);opacity:.35}
+rect.bar-bg{fill:var(--chip)} rect.bar{stroke:none}
+rect.bar.clf{fill:var(--clf-s)} rect.bar.reg{fill:var(--reg-s)} rect.bar.comb{fill:var(--comb-s)} rect.bar.step{fill:var(--step-s)}</style><title>The whole forecasting path of the final submission. Read left to right for the models, then top to bottom on the right for the fixed steps in the order the build applies them.</title><rect class="bg" width="1500" height="975" rx="12"/><defs><marker id="ah-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="ah flow" d="M0 0 L10 5 L0 10 z"/></marker><marker id="ah-fit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="ah fit" d="M0 0 L10 5 L0 10 z"/></marker><marker id="ah-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="ah hot" d="M0 0 L10 5 L0 10 z"/></marker><marker id="ah-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="ah muted" d="M0 0 L10 5 L0 10 z"/></marker><marker id="ah-vio" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="ah vio" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<rect class="grpm" x="185" y="150" width="230" height="480" rx="12"/>
+<text class="grplabel" x="197" y="168">RECORDING-MODE ESTIMATORS</text>
+<rect class="grpm" x="460" y="20" width="260" height="510" rx="12"/>
+<text class="grplabel" x="472" y="38">STACK MEMBERS</text>
+<rect class="grpm" x="460" y="640" width="260" height="250" rx="12"/>
+<text class="grplabel" x="472" y="658">ROME MODELS</text>
+<rect class="grpp" x="1225" y="15" width="270" height="890" rx="12"/>
+<text class="grplabel" x="1237" y="33">FIXED STEPS · in order</text>
+<g><rect class="n data" x="20" y="380" width="140" height="110" rx="16"/>
+<text class="nt" x="90.0" y="417.2" text-anchor="middle">Input rows</text>
+<text class="ns" x="90.0" y="433.2" text-anchor="middle">challenge data</text>
+<text class="ns" x="90.0" y="447.8" text-anchor="middle">+ open data,</text>
+<text class="ns" x="90.0" y="462.2" text-anchor="middle">25 feature blocks</text>
+</g>
+<g><rect class="n clf" x="200" y="190" width="200" height="100" rx="10"/>
+<text class="nt" x="300.0" y="229.5" text-anchor="middle">modes</text>
+<text class="ns" x="300.0" y="245.5" text-anchor="middle">shrunk per-cell rates:</text>
+<text class="ns" x="300.0" y="260.0" text-anchor="middle">P(aobt copy), P(schedule)</text>
+</g>
+<g><rect class="n clf" x="200" y="330" width="200" height="120" rx="10"/>
+<text class="nt" x="300.0" y="365.0" text-anchor="middle">modes5 · LightGBM</text>
+<text class="ns" x="300.0" y="381.0" text-anchor="middle">6 classes; cross-fitted</text>
+<text class="ns" x="300.0" y="395.5" text-anchor="middle">in 3 inner groups;</text>
+<text class="ns" x="300.0" y="410.0" text-anchor="middle">P(source), P(copy),</text>
+<text class="ns" x="300.0" y="424.5" text-anchor="middle">implied label, entropy</text>
+</g>
+<g><rect class="n clf" x="200" y="490" width="200" height="120" rx="10"/>
+<text class="nt" x="300.0" y="532.2" text-anchor="middle">modes6 · LightGBM ×2</text>
+<text class="ns" x="300.0" y="548.2" text-anchor="middle">stage 1: copy or not;</text>
+<text class="ns" x="300.0" y="562.8" text-anchor="middle">stage 2: which stamp,</text>
+<text class="ns" x="300.0" y="577.2" text-anchor="middle">calibrated + balanced</text>
+</g>
+<g><rect class="n reg" x="475" y="50" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="71.5" text-anchor="middle">cb03 · CatBoost</text>
+<text class="ns" x="590.0" y="87.5" text-anchor="middle">depth 10, 4,500 iter.</text>
+<text class="ns" x="590.0" y="102.0" text-anchor="middle">reads modes6, ADS-B</text>
+</g>
+<g><rect class="n reg" x="475" y="130" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="151.5" text-anchor="middle">cb04 · CatBoost</text>
+<text class="ns" x="590.0" y="167.5" text-anchor="middle">= cb03 + ADS-B</text>
+<text class="ns" x="590.0" y="182.0" text-anchor="middle">receiver calibration</text>
+</g>
+<g><rect class="n reg" x="475" y="210" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="231.5" text-anchor="middle">rb01s · LightGBM ×2</text>
+<text class="ns" x="590.0" y="247.5" text-anchor="middle">routed: one fit for Rome,</text>
+<text class="ns" x="590.0" y="262.0" text-anchor="middle">one for the rest</text>
+</g>
+<g><rect class="n reg" x="475" y="290" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="311.5" text-anchor="middle">ab07s · LightGBM</text>
+<text class="ns" x="590.0" y="327.5" text-anchor="middle">reads modes5, ADS-B,</text>
+<text class="ns" x="590.0" y="342.0" text-anchor="middle">context, snow</text>
+</g>
+<g><rect class="n reg" x="475" y="370" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="391.5" text-anchor="middle">q04s · LightGBM</text>
+<text class="ns" x="590.0" y="407.5" text-anchor="middle">reads modes5, arrival</text>
+<text class="ns" x="590.0" y="422.0" text-anchor="middle">regime, snow</text>
+</g>
+<g><rect class="n reg" x="475" y="450" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="471.5" text-anchor="middle">f25s · LightGBM</text>
+<text class="ns" x="590.0" y="487.5" text-anchor="middle">+ queue ahead</text>
+<text class="ns" x="590.0" y="502.0" text-anchor="middle">at off-block</text>
+</g>
+<g><rect class="n reg" x="475" y="670" width="230" height="70" rx="10"/>
+<text class="nt" x="590.0" y="701.8" text-anchor="middle">r14 · LightGBM + rules</text>
+<text class="ns" x="590.0" y="717.8" text-anchor="middle">routed by NM match</text>
+</g>
+<g><rect class="n reg" x="475" y="750" width="230" height="50" rx="10"/>
+<text class="nt" x="590.0" y="771.8" text-anchor="middle">ab07 · LightGBM</text>
+<text class="ns" x="590.0" y="787.8" text-anchor="middle">(blend input)</text>
+</g>
+<g><rect class="n reg" x="475" y="810" width="230" height="64" rx="10"/>
+<text class="nt" x="590.0" y="838.8" text-anchor="middle">lg01 · CatBoost</text>
+<text class="ns" x="590.0" y="854.8" text-anchor="middle">Rome gate delay</text>
+</g>
+<g><rect class="n step" x="780" y="280" width="150" height="80" rx="2"/>
+<text class="nt" x="855.0" y="316.8" text-anchor="middle">row router</text>
+<text class="ns" x="855.0" y="332.8" text-anchor="middle">NM match, month</text>
+</g>
+<g><rect class="n comb" x="980" y="150" width="190" height="80" rx="10"/>
+<text class="nt" x="1075.0" y="179.5" text-anchor="middle">matched vector</text>
+<text class="ns" x="1075.0" y="195.5" text-anchor="middle">cb03 .33, cb04 .30,</text>
+<text class="ns" x="1075.0" y="210.0" text-anchor="middle">rb01s .27, ab07s .10</text>
+</g>
+<g><rect class="n comb" x="980" y="280" width="190" height="80" rx="10"/>
+<text class="nt" x="1075.0" y="309.5" text-anchor="middle">unmatched vector</text>
+<text class="ns" x="1075.0" y="325.5" text-anchor="middle">cb03 .87, ab07s .13,</text>
+<text class="ns" x="1075.0" y="340.0" text-anchor="middle">rb01s .04 (no Feb 2025)</text>
+</g>
+<g><rect class="n comb" x="980" y="410" width="190" height="70" rx="10"/>
+<text class="nt" x="1075.0" y="441.8" text-anchor="middle">Feb unmatched</text>
+<text class="ns" x="1075.0" y="457.8" text-anchor="middle">cb03 × 1.151</text>
+</g>
+<g><rect class="n comb" x="980" y="700" width="190" height="70" rx="10"/>
+<text class="nt" x="1075.0" y="731.8" text-anchor="middle">Rome blend</text>
+<text class="ns" x="1075.0" y="747.8" text-anchor="middle">NNLS of r14 + ab07</text>
+</g>
+<g><rect class="n step" x="1240" y="45" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="73.8" text-anchor="middle">1 · combine</text>
+<text class="ns" x="1360.0" y="89.8" text-anchor="middle">non-Rome: weighted sum</text>
+</g>
+<g><rect class="n step" x="1240" y="131" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="159.8" text-anchor="middle">2 · Rome rows</text>
+<text class="ns" x="1360.0" y="175.8" text-anchor="middle">take r14&#x27;s value</text>
+</g>
+<g><rect class="n step" x="1240" y="217" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="245.8" text-anchor="middle">3 · cell shift</text>
+<text class="ns" x="1360.0" y="261.8" text-anchor="middle">+ s per airport-month (a120)</text>
+</g>
+<g><rect class="n step" x="1240" y="303" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="331.8" text-anchor="middle">4a · Rome matched rows</text>
+<text class="ns" x="1360.0" y="347.8" text-anchor="middle">take the Rome blend</text>
+</g>
+<g><rect class="n step" x="1240" y="389" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="417.8" text-anchor="middle">4b · huge-gap Rome rows</text>
+<text class="ns" x="1360.0" y="433.8" text-anchor="middle">unmatched, gap &gt; 20,000 s → gap</text>
+</g>
+<g><rect class="n step" x="1240" y="475" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="503.8" text-anchor="middle">4c · aobt identity</text>
+<text class="ns" x="1360.0" y="519.8" text-anchor="middle">takeoff − aobt_3 &gt; 12 h → it</text>
+</g>
+<g><rect class="n step" x="1240" y="561" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="589.8" text-anchor="middle">4d · other unmatched Rome</text>
+<text class="ns" x="1360.0" y="605.8" text-anchor="middle">max(lg01, 0)</text>
+</g>
+<g><rect class="n step" x="1240" y="647" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="675.8" text-anchor="middle">5 · upper bounds</text>
+<text class="ns" x="1360.0" y="691.8" text-anchor="middle">gap + 1,812 s; LEBL/LEMD 3,624 s</text>
+</g>
+<g><rect class="n step" x="1240" y="733" width="240" height="64" rx="2"/>
+<text class="nt" x="1360.0" y="761.8" text-anchor="middle">6 · LOBT window</text>
+<text class="ns" x="1360.0" y="777.8" text-anchor="middle">into mvt − lobt ± 3,618 s</text>
+</g>
+<g><rect class="n out" x="1240" y="830" width="240" height="60" rx="10"/>
+<text class="nt" x="1360.0" y="856.8" text-anchor="middle">Prediction</text>
+<text class="ns" x="1360.0" y="872.8" text-anchor="middle">670,790 rows</text>
+</g>
+<path class="e flow" d="M 160.0 435.0 L 180.0 435.0 L 180.0 240.0 L 200.0 240.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 160.0 435.0 L 180.0 435.0 L 180.0 390.0 L 200.0 390.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 160.0 435.0 L 180.0 435.0 L 180.0 550.0 L 200.0 550.0" marker-end="url(#ah-flow)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 72.0 L 475.0 72.0" marker-end="url(#ah-muted)"/>
+<path class="e hot" d="M 400.0 550.0 L 441.2 550.0 L 441.2 88.0 L 475.0 88.0" marker-end="url(#ah-hot)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 152.0 L 475.0 152.0" marker-end="url(#ah-muted)"/>
+<path class="e hot" d="M 400.0 550.0 L 441.2 550.0 L 441.2 168.0 L 475.0 168.0" marker-end="url(#ah-hot)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 232.0 L 475.0 232.0" marker-end="url(#ah-muted)"/>
+<path class="e vio" d="M 400.0 390.0 L 441.2 390.0 L 441.2 248.0 L 475.0 248.0" marker-end="url(#ah-vio)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 312.0 L 475.0 312.0" marker-end="url(#ah-muted)"/>
+<path class="e vio" d="M 400.0 390.0 L 441.2 390.0 L 441.2 328.0 L 475.0 328.0" marker-end="url(#ah-vio)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 392.0 L 475.0 392.0" marker-end="url(#ah-muted)"/>
+<path class="e vio" d="M 400.0 390.0 L 441.2 390.0 L 441.2 408.0 L 475.0 408.0" marker-end="url(#ah-vio)"/>
+<path class="e muted" d="M 400.0 240.0 L 426.2 240.0 L 426.2 482.0 L 475.0 482.0" marker-end="url(#ah-muted)"/>
+<path class="e flow" d="M 705.0 82.0 L 742.5 82.0 L 742.5 295.0 L 780.0 295.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 162.0 L 742.5 162.0 L 742.5 305.0 L 780.0 305.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 242.0 L 742.5 242.0 L 742.5 315.0 L 780.0 315.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 322.0 L 742.5 322.0 L 742.5 325.0 L 780.0 325.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 402.0 L 742.5 402.0 L 742.5 335.0 L 780.0 335.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 482.0 L 742.5 482.0 L 742.5 345.0 L 780.0 345.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 930.0 300.0 L 950.0 300.0 L 950.0 190.0 L 980.0 190.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 930.0 320.0 L 980.0 320.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 930.0 340.0 L 950.0 340.0 L 950.0 445.0 L 980.0 445.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 705.0 L 842.5 705.0 L 842.5 723.0 L 980.0 723.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 775.0 L 842.5 775.0 L 842.5 747.0 L 980.0 747.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 109.0 L 1360.0 131.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 195.0 L 1360.0 217.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 281.0 L 1360.0 303.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 367.0 L 1360.0 389.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 453.0 L 1360.0 475.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 539.0 L 1360.0 561.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 625.0 L 1360.0 647.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 711.0 L 1360.0 733.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1170.0 190.0 L 1205.0 190.0"/>
+<path class="e flow" d="M 1170.0 320.0 L 1205.0 320.0"/>
+<path class="e flow" d="M 1170.0 445.0 L 1205.0 445.0"/>
+<path class="e flow" d="M 1205.0 445.0 L 1205.0 77.0 L 1240.0 77.0" marker-end="url(#ah-flow)"/>
+<path class="e fit" d="M 705.0 705.0 L 745.0 705.0 L 745.0 630.0 L 1195.0 630.0 L 1195.0 163.0 L 1240.0 163.0" marker-end="url(#ah-fit)"/>
+<path class="e flow" d="M 1170.0 735.0 L 1185.0 735.0 L 1185.0 335.0 L 1240.0 335.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 705.0 842.0 L 1215.0 842.0 L 1215.0 593.0 L 1240.0 593.0" marker-end="url(#ah-flow)"/>
+<path class="e flow" d="M 1360.0 797.0 L 1360.0 830.0" marker-end="url(#ah-flow)"/>
+<rect class="n clf" x="20" y="914" width="24" height="15" rx="7"/>
+<text class="note" x="52" y="926">classifier (fitted)</text>
+<rect class="n reg" x="215" y="914" width="24" height="15" rx="7"/>
+<text class="note" x="247" y="926">regressor (fitted)</text>
+<rect class="n comb" x="403" y="914" width="24" height="15" rx="7"/>
+<text class="note" x="435" y="926">combiner (fitted weights)</text>
+<rect class="n step" x="640" y="914" width="24" height="15" rx="2"/>
+<text class="note" x="672" y="926">processing step (fixed rule)</text>
+<rect class="n data" x="898" y="914" width="24" height="15" rx="7"/>
+<text class="note" x="930" y="926">data</text>
+<rect class="n out" x="988" y="914" width="24" height="15" rx="7"/>
+<text class="note" x="1020" y="926">output</text>
+<text class="cap" x="20" y="958" text-anchor="start">Weights are the final submission&#x27;s. Red arrows: modes6; violet: modes5; grey: modes; dashed: r14&#x27;s value for every Rome row. The build also fits a seventh member, t05s; NNLS gives it weight 0 everywhere, so it is not drawn.</text>
+</svg>

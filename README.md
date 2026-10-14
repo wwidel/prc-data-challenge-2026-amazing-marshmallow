@@ -7,6 +7,12 @@ submission. The best submission of the leaderboard phase, **v62**, scored 251.25
 first model scored 433.80, and a group-mean baseline 604.41. [The final phase](#the-final-phase)
 describes what we changed for the organisers' final ranking, on four months of 2026.
 
+[![From inputs to the final prediction: recording-mode estimators feed six weighted stack members; a row router picks one of three NNLS weight vectors; Rome has its own models; nine fixed steps follow in order.](docs/forecasting_flow.svg)](docs/forecasting_flow.svg)
+
+*From inputs to the final prediction. Filled boxes are fitted on 2025 labels, white boxes are
+fixed rules; the right-hand column is the order the build applies them. Click the figure for full
+size; [How it works](#how-it-works) walks through it.*
+
 This repository holds the code that builds v62 and our final-phase submission, the analyses behind
 the claims below, and our full history: every submission, finding and experiment, indexed in
 [`docs/HISTORY.md`](docs/HISTORY.md).
@@ -36,19 +42,8 @@ version that runs in minutes.
 
 This describes the final submission. [v62](#the-leaderboard-phase-submission-v62), the
 leaderboard-phase build, is the same design on two months; [the final phase](#the-final-phase)
-lists what changed between them.
-
-```mermaid
-flowchart LR
-  D["challenge data<br/>+ open data"] --> F["25 feature blocks<br/>incl. recording-mode<br/>classifiers"]
-  F --> M["6 weighted members<br/>4 LightGBM, 2 CatBoost"]
-  M --> N["NNLS stack<br/>NM-matched / unmatched<br/>weight vectors"]
-  N --> R["Rome layer<br/>LIRF rows take r14"]
-  R --> C["cell shift<br/>per airport-month"]
-  C --> O["4 override files<br/>exact or Rome rows"]
-  O --> B["bounds<br/>gap + 1,812 s,<br/>LEBL/LEMD ≤ 3,624 s"]
-  B --> L["LOBT window<br/>mvt − lobt ± 3,618 s"]
-```
+lists what changed between them. [The figure at the top](docs/forecasting_flow.svg) draws all of
+it.
 
 The core ideas, in the order the prediction is built:
 
@@ -480,6 +475,7 @@ scripts/analysis/          the analyses behind this README, and the generators o
 tests/                     pure-logic tests always run; data-dependent ones skip without the data
 docs/MODELS.md             every model in full: hyperparameters, training options, features (generated)
 docs/HISTORY.md            one-line indexes of every submission, finding and experiment
+docs/forecasting_flow.svg  the figure at the top of this README
 docs/SUBMISSIONS.md        every submission and its score, as logged at the time
 docs/archive/              our findings log (L001–L073), verbatim
 ```
