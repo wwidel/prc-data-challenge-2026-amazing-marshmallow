@@ -3,7 +3,7 @@
 Our solution to the [PRC Data Challenge 2026](https://prc-data-challenge-2026.netlify.app/):
 predicting the **taxi-out time** of departures at ten large European airports.
 
-[![From inputs to the final prediction: recording-mode estimators feed six weighted stack members; a row router picks one of three NNLS weight vectors; Rome has its own models; nine fixed steps follow in order.](docs/forecasting_flow.svg)](docs/forecasting_flow.svg)
+[![From inputs to the final prediction: recording-mode estimators feed six weighted stack members; a row router picks one of three NNLS weight vectors; Rome has its own models; nine fixed steps follow in order.](docs/forecasting_flow.svg)](docs/forecasting_flow.svg?raw=true)
 
 *From inputs to the final prediction. Filled boxes are fitted on 2025 labels, white boxes are
 fixed rules; the right-hand column is the order the build applies them. Click the figure for full
@@ -38,7 +38,7 @@ version that runs in minutes.
 
 This describes the final submission. [v62](#the-leaderboard-phase-submission-v62), the
 leaderboard-phase build, is the same design on two months; [the final phase](#the-final-phase)
-lists what changed between them. [The figure at the top](docs/forecasting_flow.svg) draws all of
+lists what changed between them. [The figure at the top](docs/forecasting_flow.svg?raw=true) draws all of
 it.
 
 The core ideas, in the order the prediction is built:
