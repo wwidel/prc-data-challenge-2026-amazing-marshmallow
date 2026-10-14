@@ -1,11 +1,7 @@
 # PRC Data Challenge 2026 — taxi-out prediction, team amazing-marshmallow
 
 Our solution to the [PRC Data Challenge 2026](https://prc-data-challenge-2026.netlify.app/):
-predicting the **taxi-out time** of departures at ten large European airports. Our best
-leaderboard score is **250.86 s** (v66, 250.8618): the January and July half of our final-phase
-submission. The best submission of the leaderboard phase, **v62**, scored 251.25 s (251.2454); our
-first model scored 433.80, and a group-mean baseline 604.41. [The final phase](#the-final-phase)
-describes what we changed for the organisers' final ranking, on four months of 2026.
+predicting the **taxi-out time** of departures at ten large European airports.
 
 [![From inputs to the final prediction: recording-mode estimators feed six weighted stack members; a row router picks one of three NNLS weight vectors; Rome has its own models; nine fixed steps follow in order.](docs/forecasting_flow.svg)](docs/forecasting_flow.svg)
 
