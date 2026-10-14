@@ -51,7 +51,7 @@ STACK_FLAGS := --rome-from r14_rules_plus_unmatched_route --weight-groups unmatc
 
 .DEFAULT_GOAL := help
 .PHONY: help setup external adsb spine features cv refit overrides stack stack-noshift cellshift \
-        verify lite test lint fmt check
+        verify lite models-doc test lint fmt check
 
 help:  ## show this list
 	@grep -hE '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) \
@@ -106,11 +106,14 @@ stack-noshift:  ## the same without the cell shift -> $(OUT)_noshift.parquet (in
 cellshift:  ## final phase: a120's per airport-month shifts on $(OUT)_noshift.parquet -> $(CELLSHIFT)
 	A120_PRED=$(OUT)_noshift.parquet $(RUN) python scripts/analysis/a120_cell_shift.py
 
-verify:  ## independent checks of $(OUT).parquet (ids, bounds, every override landed)
+verify:  ## independent checks of $(OUT).parquet (ids, dtypes, extremes, every override landed)
 	$(RUN) python scripts/verify_stack.py $(OUT).parquet $(foreach f,$(OVERRIDES),--overrides $(f))
 
 lite:  ## the light tier: ~30 least-squares numbers + the rules (needs data/raw and the spine)
 	$(RUN) python scripts/lite.py --out data/output/lite.parquet
+
+models-doc:  ## regenerate docs/MODELS.md from the configs and the code (needs no data)
+	$(RUN) python scripts/describe_models.py
 
 ## ---- quality ----------------------------------------------------------------------------
 
