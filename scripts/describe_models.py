@@ -38,6 +38,9 @@ COMPOSITIONS = ROOT / "config" / "compositions"
 #: Read from the Makefile's LAYERS and the final phase's EXTRA; checked against it below.
 LAYERS = ("r14_rules_plus_unmatched_route", "lg01_lirf_gate_delay")
 BLEND_INPUT = "ab07_ab02_adsb_calib"
+#: Final-submission members that NNLS gives weight 0 in every vector (docs/SUBMISSIONS.md, v66's
+#: row): fitted by the build, but they change no prediction.
+ZERO_WEIGHT = ("t05s_t05_snow",)
 #: The machine profile the final phase's refits run under (Makefile: REFIT_FLAGS).
 FINAL_REFIT_PROFILE = ROOT / "config" / "profiles" / "laptop.yaml"
 
@@ -219,7 +222,11 @@ def render() -> str:
     v62 = members(COMPOSITIONS / "v62_members.txt")
     roles: dict[str, list[str]] = {}
     for n in final:
-        roles.setdefault(n, []).append("final submission: stack member")
+        roles.setdefault(n, []).append(
+            "final submission: fitted, but NNLS weight 0 in every vector; it changes no prediction"
+            if n in ZERO_WEIGHT
+            else "final submission: stack member"
+        )
     for n in v62:
         roles.setdefault(n, []).append("v62: stack member")
     for n in LAYERS:
@@ -248,7 +255,9 @@ def render() -> str:
         "[README](../README.md#how-it-works).",
         "",
         "- **Final submission**: "
-        + ", ".join(f"[`{n}`](#{anchor(n)})" for n in final)
+        + ", ".join(f"[`{n}`](#{anchor(n)})" for n in final if n not in ZERO_WEIGHT)
+        + "; also fitted, with NNLS weight 0 everywhere: "
+        + ", ".join(f"[`{n}`](#{anchor(n)})" for n in final if n in ZERO_WEIGHT)
         + "; Rome layer "
         + ", ".join(f"[`{n}`](#{anchor(n)})" for n in LAYERS)
         + f"; [`{BLEND_INPUT}`](#{anchor(BLEND_INPUT)}) for the Rome matched-row blend.",

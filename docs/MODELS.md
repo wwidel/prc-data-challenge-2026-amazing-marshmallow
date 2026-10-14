@@ -7,7 +7,7 @@ values and, marked *default*, the wrapper's defaults underneath them. How the me
 combined (NNLS stack, Rome layer, overrides, cell shift, bounds) is in the
 [README](../README.md#how-it-works).
 
-- **Final submission**: [`hp_cb03_it4500`](#hp_cb03_it4500), [`hp_cb04_it4500`](#hp_cb04_it4500), [`q04s_q04_snow`](#q04s_q04_snow), [`ab07s_ab07_snow`](#ab07s_ab07_snow), [`rb01s_rb01_snow`](#rb01s_rb01_snow), [`t05s_t05_snow`](#t05s_t05_snow), [`f25s_f25_snow`](#f25s_f25_snow); Rome layer [`r14_rules_plus_unmatched_route`](#r14_rules_plus_unmatched_route), [`lg01_lirf_gate_delay`](#lg01_lirf_gate_delay); [`ab07_ab02_adsb_calib`](#ab07_ab02_adsb_calib) for the Rome matched-row blend.
+- **Final submission**: [`hp_cb03_it4500`](#hp_cb03_it4500), [`hp_cb04_it4500`](#hp_cb04_it4500), [`q04s_q04_snow`](#q04s_q04_snow), [`ab07s_ab07_snow`](#ab07s_ab07_snow), [`rb01s_rb01_snow`](#rb01s_rb01_snow), [`f25s_f25_snow`](#f25s_f25_snow); also fitted, with NNLS weight 0 everywhere: [`t05s_t05_snow`](#t05s_t05_snow); Rome layer [`r14_rules_plus_unmatched_route`](#r14_rules_plus_unmatched_route), [`lg01_lirf_gate_delay`](#lg01_lirf_gate_delay); [`ab07_ab02_adsb_calib`](#ab07_ab02_adsb_calib) for the Rome matched-row blend.
 - **v62**: [`t05_huber_alpha[alpha=600]`](#t05_huber_alphaalpha600), [`f25_queue2`](#f25_queue2), [`q04_c12_min_leaf30`](#q04_c12_min_leaf30), [`rb01_lirf_route_ab02`](#rb01_lirf_route_ab02), [`ab07_ab02_adsb_calib`](#ab07_ab02_adsb_calib), [`cb03_k20_combo_adsb`](#cb03_k20_combo_adsb), [`cb04_cb03_adsb_calib`](#cb04_cb03_adsb_calib); the same Rome layer.
 
 Seeds are fixed (LightGBM `seed` 0, CatBoost `random_seed` 0). The final phase's refits
@@ -354,7 +354,7 @@ Early stopping: the number of trees is chosen on the last 15% of the training ro
 
 ### `t05s_t05_snow`
 
-*final submission: stack member.* Config: [`config/experiments/t05s_t05_snow.yaml`](../config/experiments/t05s_t05_snow.yaml)
+*final submission: fitted, but NNLS weight 0 in every vector; it changes no prediction.* Config: [`config/experiments/t05s_t05_snow.yaml`](../config/experiments/t05s_t05_snow.yaml)
 
 > Screen: t05 plus the snow block, the change q04s, ab07s, rb01s, cb04s and cb03s make to their
 > members. Question: does the Huber member's February improve when it sees a storm's size?

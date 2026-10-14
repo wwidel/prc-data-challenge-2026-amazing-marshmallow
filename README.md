@@ -41,7 +41,7 @@ lists what changed between them.
 ```mermaid
 flowchart LR
   D["challenge data<br/>+ open data"] --> F["25 feature blocks<br/>incl. recording-mode<br/>classifiers"]
-  F --> M["7 members<br/>5 LightGBM, 2 CatBoost"]
+  F --> M["6 weighted members<br/>4 LightGBM, 2 CatBoost"]
   M --> N["NNLS stack<br/>NM-matched / unmatched<br/>weight vectors"]
   N --> R["Rome layer<br/>LIRF rows take r14"]
   R --> C["cell shift<br/>per airport-month"]
@@ -68,9 +68,11 @@ The core ideas, in the order the prediction is built:
    (adsb.lol), EUROCONTROL's daily delay series and, for Rome, OPDI's aircraft ground time
    ([Open data](#open-data)). Each block declares whether it reads only its own row, other rows,
    or labels, and the cross-validation enforces what that allows.
-3. **Seven gradient-boosted regressors.** Five LightGBM members (one with a Huber loss, one
-   routed: a separate fit for Rome) and two CatBoost members (depth 10, 1,024 borders, 4,500
-   iterations); five of the seven are trained on labels capped at 3 h. Each is cross-validated on
+3. **Six gradient-boosted regressors that carry weight.** Four LightGBM members (one routed: a
+   separate fit for Rome) and two CatBoost members (depth 10, 1,024 borders, 4,500 iterations);
+   five of the six are trained on labels capped at 3 h. Nearly all the weight is on four of them:
+   cb03, cb04, rb01s and ab07s. The build also fits a seventh, `t05s` (Huber loss), which NNLS
+   gives weight 0 in every vector, so it changes no prediction. Each is cross-validated on
    two folds, January + July and February + June 2025, each trained on the other ten months, then
    refitted on all of 2025 to predict the 2026 rows. [docs/MODELS.md](docs/MODELS.md) lists every
    hyperparameter, training option and feature column of each.
