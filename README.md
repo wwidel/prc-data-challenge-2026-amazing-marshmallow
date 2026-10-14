@@ -8,12 +8,17 @@ first model scored 433.80, and a group-mean baseline 604.41. [The final phase](#
 describes what we changed for the organisers' final ranking, on four months of 2026.
 
 This repository holds the code that builds v62 and our final-phase submission, the analyses behind
-the claims below, and the full submission history ([`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md)).
+the claims below, and our full history: every submission, finding and experiment, indexed in
+[`docs/HISTORY.md`](docs/HISTORY.md).
 It holds **no data**: the competition files cannot be redistributed, and every open source is
 pulled by a script. [`REPRODUCE.md`](REPRODUCE.md) gives the build steps and timings, and a light
 version that runs in minutes.
 
 **Contents.**
+[How it works](#how-it-works) ·
+[How the code is organised](#how-the-code-is-organised) ·
+[Models in full](docs/MODELS.md) ·
+[History](docs/HISTORY.md) ·
 [The challenge](#the-challenge) ·
 [What makes the data hard](#what-makes-the-data-hard) ·
 [Open data](#open-data) ·
@@ -23,8 +28,118 @@ version that runs in minutes.
 [The final phase](#the-final-phase) ·
 [Learnings](#learnings) ·
 [Where each number comes from](#where-each-number-comes-from) ·
+[Known limitations](#known-limitations) ·
 [Credits](#credits) ·
 [Licence](#licence)
+
+## How it works
+
+This describes the final submission. [v62](#the-leaderboard-phase-submission-v62), the
+leaderboard-phase build, is the same design on two months; [the final phase](#the-final-phase)
+lists what changed between them.
+
+```mermaid
+flowchart LR
+  D["challenge data<br/>+ open data"] --> F["25 feature blocks<br/>incl. recording-mode<br/>classifiers"]
+  F --> M["7 members<br/>5 LightGBM, 2 CatBoost"]
+  M --> N["NNLS stack<br/>NM-matched / unmatched<br/>weight vectors"]
+  N --> R["Rome layer<br/>LIRF rows take r14"]
+  R --> C["cell shift<br/>per airport-month"]
+  C --> O["4 override files<br/>exact or Rome rows"]
+  O --> B["bounds<br/>gap + 1,812 s,<br/>LEBL/LEMD ≤ 3,624 s"]
+  B --> L["LOBT window<br/>mvt − lobt ± 3,618 s"]
+```
+
+The core ideas, in the order the prediction is built:
+
+1. **Find out how the label was written.** The label is `takeoff − block_time`, and `block_time`
+   is written by an airport system that often copies a timestamp the data still holds
+   (`aobt_3`, `eobt_1`, `lobt`, `iobt` or the schedule). Three *recording-mode* feature blocks
+   estimate, per row, which stamp was copied: `modes` (shrunk per-cell rates), `modes5` (a
+   six-way LightGBM classifier, cross-fitted inside the training months) and `modes6` (its
+   two-stage version). Their outputs are class probabilities and, for the classifiers, the labels
+   each class implies, which the members read as features. They read labels, so they are recomputed inside every
+   fold. [What makes the data hard](#what-makes-the-data-hard) gives the evidence.
+2. **Describe each departure with challenge data and open data.** The final build reads 25
+   feature blocks ([catalogue](docs/MODELS.md#feature-blocks)): the off-block estimates and their
+   defaults, the schedule, stand and runway, the NM flight match, taxi-in and congestion from the arrivals,
+   runway configuration and history; and from open data, METAR weather and snow, stand-to-runway
+   distance (X-Plane Scenery Gateway, OpenStreetMap), each departure's own ADS-B ground track
+   (adsb.lol), EUROCONTROL's daily delay series and, for Rome, OPDI's aircraft ground time
+   ([Open data](#open-data)). Each block declares whether it reads only its own row, other rows,
+   or labels, and the cross-validation enforces what that allows.
+3. **Seven gradient-boosted regressors.** Five LightGBM members (one with a Huber loss, one
+   routed: a separate fit for Rome) and two CatBoost members (depth 10, 1,024 borders, 4,500
+   iterations); five of the seven are trained on labels capped at 3 h. Each is cross-validated on
+   two folds, January + July and February + June 2025, each trained on the other ten months, then
+   refitted on all of 2025 to predict the 2026 rows. [docs/MODELS.md](docs/MODELS.md) lists every
+   hyperparameter, training option and feature column of each.
+4. **A non-negative least-squares stack.** NNLS weights are fitted on the members' out-of-fold
+   predictions (Rome excluded): one vector for NM-matched rows and one for the 1% of rows with no
+   Network Manager flight match, which behave differently. The unmatched vector for January,
+   June and July is fitted without February 2025, which two storm days at Istanbul dominate.
+5. **A separate layer for Rome (LIRF).** Rome has most of the extreme labels, and its CV gains
+   rarely reached the leaderboard. Its rows take `r14` instead of the stack: two rules plus
+   a LightGBM routed on the NM-match flag. Its matched rows then take an NNLS blend of r14 and
+   ab07, and most of its unmatched rows `lg01`, a CatBoost gate-delay model (taxi = schedule
+   gap − predicted gate delay).
+6. **A cell shift.** Each airport-month's level is moved halfway towards EUROCONTROL's published
+   monthly taxi-out, net of the offset the 2025 labels show (`a120`).
+7. **Exact rows and admissible bounds.** Four override files replace rows whose label can be read
+   from the record (the Rome rows above, 27 huge-gap rows, one row a day long). Every prediction
+   is then projected onto intervals that held in the 2025 labels: at most the schedule gap +
+   1,800 s, at most 3,600 s at LEBL and LEMD, and within ± 3,606 s of `mvt − lobt`. For the
+   organisers' ± 12 s noise on the final file's takeoff times they are widened to 1,812 s,
+   3,624 s and ± 3,618 s (`paths.TIME_NOISE`).
+
+The weights of the submitted file are in its row of [`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md)
+(v66, whose 344,841 values are the final file's January and July half).
+
+## How the code is organised
+
+```mermaid
+flowchart TB
+  subgraph inputs["inputs (not in the repository)"]
+    RAW["data/raw/<br/>competition parquet files"]
+    EXT["data/external/<br/>open data"]
+  end
+  P["scripts/pull_*.py<br/>make external, make adsb"] --> EXT
+  RAW --> S["scripts/build_spine.py<br/>make spine"]
+  S --> SP["data/interim/spine*<br/>one row per movement"]
+  SP --> FB["scripts/build_features.py<br/>make features"]
+  EXT --> FB
+  FB --> FS["data/features*/<br/>cached blocks"]
+  FS --> CV["scripts/run_experiments.py<br/>make cv"]
+  FS --> RF["scripts/refit_predict.py<br/>make refit"]
+  CV --> OOF["data/predictions*/<br/>out-of-fold predictions"]
+  RF --> RP["data/rank_preds*/<br/>2026 predictions"]
+  OOF --> OV["scripts/analysis/a050, a060,<br/>a111, a125: make overrides"]
+  RP --> OV
+  OOF --> ST["scripts/build_stack.py<br/>make stack"]
+  RP --> ST
+  OV --> ST
+  ST -. "a build without the shift" .-> CS["scripts/analysis/a120<br/>make cellshift"]
+  CS --> ST
+  ST --> OUT["data/output/final.parquet"]
+  OUT --> VF["scripts/verify_stack.py<br/>make verify"]
+```
+
+`*` is `_final` in the final phase (`PHASE=final`), so the two phases never share a directory.
+The library, `src/taxiout/`:
+
+| module | what it does |
+|---|---|
+| `io`, `paths`, `spine` | reading the raw files; where everything lives; the row spine every block aligns to |
+| `features/` | one module per feature block, registered with its kind (`registry.py`) |
+| `store` | caches row-local and context blocks; target-dependent ones are never cached |
+| `cv`, `experiment` | fold sets; an experiment is a YAML file in `config/experiments/` naming blocks, a model and a fold set |
+| `models/` | LightGBM, CatBoost, and wrappers that nest them: routed, subset, offset and rules |
+| `postprocess` | the cell shift, the bounds, the LOBT window, writing the submission |
+| `tracking`, `analysis`, `viz` | the run log, the analysis scripts' recorder, plots |
+
+To add a feature, write a block in `src/taxiout/features/`, import it in `features/__init__.py`,
+and name it in a copy of a config; `make cv` scores it. [`REPRODUCE.md`](REPRODUCE.md) gives
+every step with timings, and [the layout below](#repository-layout) every directory.
 
 ## The challenge
 
@@ -245,7 +360,7 @@ rows' level from board results.
 
 ## The final phase
 
-After the leaderboard closed, the organisers added a final phase: one submission predicting
+Before the leaderboard closed, the organisers added a final phase: one submission predicting
 `final_ranking.parquet`, the 670,790 departures of January, February, June and July 2026. This
 repository builds it with `TAXIOUT_PHASE=final` ([`REPRODUCE.md`](REPRODUCE.md#the-final-phase)).
 
@@ -352,14 +467,19 @@ the stack by 0.013 s.
 
 ```
 config/experiments/        v62's nine configs (seven members, the Rome layer r14, the Rome gate-delay model lg01),
-                           and the final phase's variants: snow, placebo controls, tuning
+                           the final phase's variants (snow, placebo controls, tuning), and w08, the
+                           twelve-month CV that a127, a128 and a131 read
 config/compositions/       the member lists: v62's and the final submission's
 config/cellshift_v54.csv   the 11 airport-month shifts v62 applies
 src/taxiout/               io, row spine, feature store (26 blocks), CV, models, post-processing
-scripts/                   data pulls, spine and feature builds, CV, refits, the stack, the light tier
+scripts/                   data pulls, spine and feature builds, CV, refits, the stack, the light tier,
+                           describe_models.py (writes docs/MODELS.md)
 scripts/analysis/          the analyses behind this README, and the generators of the four override files
 tests/                     pure-logic tests always run; data-dependent ones skip without the data
+docs/MODELS.md             every model in full: hyperparameters, training options, features (generated)
+docs/HISTORY.md            one-line indexes of every submission, finding and experiment
 docs/SUBMISSIONS.md        every submission and its score, as logged at the time
+docs/archive/              our findings log (L001–L073), verbatim
 ```
 
 ## Where each number comes from
@@ -393,6 +513,42 @@ competition data.
 | board scores and their deltas | [`docs/SUBMISSIONS.md`](docs/SUBMISSIONS.md) |
 
 Cross-validated member scores are from our run log. They are reproduced by `make cv`.
+
+## Known limitations
+
+A review of this repository after the final submission found the following. None of them changes
+the submitted file: its January and July half was scored as v66, and it rebuilds byte for byte
+from our predictions ([REPRODUCE](REPRODUCE.md#the-final-phase)). They are left unfixed because
+each fix changes the config hashes or the fitted models. Anyone extending the code should know them.
+
+- **Prediction files are found by name, not by identity.** `build_stack.py` and `merge_oof.py`
+  take each member's newest out-of-fold file by modification time, whatever its config hash, and
+  join members without checking that they cover the same rows. `refit_predict.py` skips a member
+  whose `rank_preds/<name>.parquet` exists. After changing a config, delete its old files under
+  `data/predictions*/` and `data/rank_preds*/`.
+- **The run log's identity is incomplete.** `config_hash` covers the feature blocks' code, the
+  model spec and the fold set, but not the phase or the model and CV code, and
+  `run_experiments.py` skips a config already logged under its hash.
+- **Feature caches are keyed on each block's own module only.** Not the external files it reads,
+  not the spine, and not helpers imported from other modules (see
+  [REPRODUCE](REPRODUCE.md#why-a-rebuild-will-be-close-not-byte-identical)). Cached blocks are
+  attached to the spine by position, so rebuild them after rebuilding the spine.
+- **`rwy_cfg_changed` (the `runway_config` block) is close to noise.** It compares each
+  airport-hour with the previous row of a frame that is never sorted by hour, so the comparison is
+  with an arbitrary hour and differs between builds. The submitted members read one build of it,
+  in training and prediction alike. It is also why a rebuild of the features from scratch cannot
+  reproduce the members exactly.
+- **LightGBM's early stopping removes rows from training.** With the default
+  `stop_slice: last`, the trees are grown without the last 15% of the training rows by month, and
+  the number of trees is chosen on them, in the twelve-month refit too: most of November and
+  December 2025 ([MODELS](docs/MODELS.md)). `stop_slice: days`, or a refit on all rows at the
+  chosen number of trees, was not tested.
+- **Two pulls report success after a failed download.** `pull_adsb.py` and `pull_eurocontrol.py`
+  exit 0 when a file could not be fetched, and the blocks then treat the missing days as empty.
+  Several outputs are written in place rather than through a temporary file. Check the pull logs.
+- **Machine profiles apply to refits only.** `refit_predict.py --profile` applies one;
+  `run_experiments.py` has no such option. The `bigbox` profile's 8 LightGBM threads describe the
+  machine, not the 4 threads every LightGBM member was fitted with.
 
 ## Credits
 

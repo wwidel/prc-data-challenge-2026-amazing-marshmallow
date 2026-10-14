@@ -41,14 +41,14 @@ For a result in minutes rather than days, see [the light tier](#the-light-tier) 
 |---|---|---|---|
 | 1 | `make setup` | installs the locked environment | minutes |
 | 2 | `make external` | METAR (IEM), stand and runway tables (X-Plane Scenery Gateway, OpenStreetMap), EUROCONTROL series, OPDI flight lists | minutes |
-| 3 | `make adsb` | adsb.lol traces for 427 days (all of 2025, January and July 2026), cut to the ten airports' boxes | **~27 h**, resumable; 6.0 GB kept |
+| 3 | `make adsb` | adsb.lol traces for 485 days (all of 2025; January, February, June and July 2026), cut to the ten airports' boxes | **~31 h**, resumable; ~7 GB kept |
 | 4 | `make spine` | the row spine every block is aligned to | ~1 min |
 | 5 | `make features` | every cacheable feature block (the target-dependent ones are computed per fold during steps 6–7) | not timed separately |
 | 6 | `make cv` | cross-validates the nine configs on the Jan and Jul 2025 folds; writes `data/predictions/` | **~22 h** as logged (table below) |
 | 7 | `make refit` | refits the nine on all of 2025 and predicts the 2026 rows; writes `data/rank_preds/` | **~8 h** |
 | 8 | `make overrides` | writes the four override files (a050, a060, a111, a125) | minutes |
 | 9 | `make stack` | builds `data/output/v62.parquet` | minutes |
-| 10 | `make verify` | independent checks: ids, dtypes, bounds, every override row landed | seconds |
+| 10 | `make verify` | independent checks: ids, dtypes, no nulls or negative values, the maximum, every override row landed (net of the bounds) | seconds |
 
 Cross-validation and refit time per config, as logged on the VM:
 
@@ -114,8 +114,11 @@ row did not land. Our v62 file's sha256 starts with `bff918f7` and ends with `a4
   are not all in this repository. v62 applies them unchanged. You can point a120 at your own build
   (`make stack-noshift`, then `A120_PRED=data/output/v62_noshift.parquet`). It will print your
   build's estimated per-cell errors, not v54's.
-- **Feature caches do not see external files.** A block's cache key hashes its code, not the files
-  it reads, so after re-pulling a source rebuild its blocks with
+- **Feature caches do not see external files, the spine, or other modules.** A block's cache key
+  hashes its own module's code, not the files it reads, not the spine it is aligned to, and not
+  helpers it imports from elsewhere (`snow` reads `weather.load_metar`, `stand_runway_lo` uses
+  `stand_runway._code`, and `adsb_calib` reads the cached `adsb` block). After re-pulling a
+  source, rebuilding the spine or editing such a helper, rebuild the affected blocks with
   `uv run python scripts/build_features.py --overwrite <block>`.
 - **Numerics.** The members are fitted at fixed seeds, but a tree learner depends on the order of
   floating-point sums: another CPU, BLAS or thread count can change a split, and every prediction
@@ -125,7 +128,7 @@ row did not land. Our v62 file's sha256 starts with `bff918f7` and ends with `a4
 
 ## The final phase
 
-The organisers added a final phase after the leaderboard closed: one submission predicting
+Before the leaderboard closed, the organisers added a final phase: one submission predicting
 `final_ranking.parquet`, which holds January, February, June and July 2026 (670,790 departures).
 They rank Jan/Jul, Feb/Jun and all four months. The template is `final_submitting.parquet`. Put
 both files in `data/raw/`, then run everything with `PHASE=final`, which sets
@@ -187,7 +190,10 @@ the experiments in between.
 
 `scripts/lite.py` fits about thirty numbers. Per airport, it runs a least squares of the label on
 `takeoff − aobt_3` and `takeoff − eobt_1`. Rows missing either stamp fall back to stand and airport
-medians. It then applies the full build's two exact rules, its bounds and the LOBT window. It needs
+medians. It then applies two rules, simplified from the full build's: an NM-unmatched Rome
+departure more than 12 h after its schedule takes the gap (the full build mixes the gap with a
+constant there, and takes the pure gap only above 20,000 s), and an NM-matched one whose
+`takeoff − aobt_3` exceeds 4 h takes that value (as r14 does). Then the bounds and the LOBT window. It needs
 only `data/raw/` and the spine, and runs in minutes on a laptop with enough memory for the 2.4M-row
 spine:
 
